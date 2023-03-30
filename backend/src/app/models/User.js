@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Account = require('./Account');
+const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
     name: {
@@ -23,7 +23,7 @@ const UserSchema = new Schema({
         type: String,
     },
     account: {
-        type: Account,
+        type: Schema.Types.ObjectId,
         required: true
     },
     location: {
@@ -32,8 +32,18 @@ const UserSchema = new Schema({
         },
     },
     address: {
-        type: Schema.Types.ObjectId,
-        ref: 'address',
+        stress: {
+            type: String,
+        },
+        province: {
+            type: String
+        },
+        district: {
+            type: String
+        },
+        commute: {
+            type: String
+        },
     },
 });
 
