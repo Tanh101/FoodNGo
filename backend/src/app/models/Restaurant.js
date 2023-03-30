@@ -23,10 +23,14 @@ const RetstaurantSchema = new mongoose.Schema({
             required: true
         }
     },
-    media: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'media',
-    },
+    media: [{
+        type: {
+            type: String,
+        },
+        url: {
+            type: String,
+        }
+    }],
     url: {
         type: String,
         unique: true,
@@ -51,7 +55,7 @@ const RetstaurantSchema = new mongoose.Schema({
         default: 'online',
         enum: ['online', 'busy', 'offline'],
     },
-    deleteAt: {
+    delete_at: {
         type: Date,
         default: null,
     },

@@ -21,7 +21,7 @@ const AccountSchema = new Schema({
         enum: ['guest', 'user', 'admin', 'seller', 'shipper']
 
     },
-    deleteAt : {
+    delete_at : {
         type: Date,
         default: null
     }
