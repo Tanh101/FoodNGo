@@ -19,15 +19,13 @@ const auth = {
         }
 
     },
-    verifyTokenAndAdminAuth: (req, res, next) =>{
-        auth.verifyToken(req, res, ()=>{
-            if(req.user.id == req.params.id || req.user.role == "admin"){
-                next();
-            }
-            else{
-                return res.status(403).json("You're not allowed to delete other");
-            }
-        });
+    checkRole: (req, res, next) => {
+        if(req.user.role === "admin"){
+            next();
+        }
+        else{
+            return res.status(403).json("You are not allowed to do that");
+        }
     }
 }
 
