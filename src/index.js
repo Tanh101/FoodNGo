@@ -1,23 +1,24 @@
 const express = require("express");
 const cors = require("cors");
-const app = express();
 const dotenv = require("dotenv");
-const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 const db = require('./app/config/db/index');
+
+const app = express();
+const routes = require('./routes/index');
 dotenv.config();
 
+//CONNECT TO DB
 db.connect();
 
 app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 
-
-
-
 //ROUTES
+app.use('/', routes);
 
-app.listen(8000, () => {
-  console.log("Server is running");
+//START SERVER
+app.listen(process.env.PORT || 3306, () => {
+  console.log(`Server is running on port ${process.env.PORT}`);
 });
