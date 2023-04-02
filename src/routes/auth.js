@@ -1,6 +1,4 @@
-
 const express = require('express');
-require('dotenv').config();
 const authController = require('../app/controllers/authController');
 const validateMiddleware = require('../middleware/validationMiddleware');
 
