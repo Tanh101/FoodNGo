@@ -60,35 +60,57 @@ const authController = {
         }
     },
 
-    generateAccesstoken: async (user) => {
+    generateAccesstoken: async (account, user) => {
         const accessToken = jwt.sign({
+            accountId: account._id,
+            username: account.email,
+            role: account.role,
             userId: user._id,
-            username: user.username
+            name: user.name,
+            dob: user.dob,
+            gender: user.gender,
+            avatar: user.avatar,
+            location: user.location,
+            address: user.address,
         }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1000s' });
         return accessToken;
     },
+    generateRefreshToken: async (account, user) => {
+        const refreshToken = jwt.sign({
+            accountId: account._id,
+            username: account.email,
+            role: account.role,
+            userId: user._id,
+            name: user.name,
+            dob: user.dob,
+            gender: user.gender,
+            avatar: user.avatar,
+            location: user.location,
+            address: user.address,
+        }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
+        return refreshToken;
+    },
+
 
     login: async (req, res) => {
         try {
-            // const {username, password} = req.body;
-            if (!req.body.username || !req.body.password) {
+            if (!req.body.email || !req.body.password) {
                 return res.status(400).json({
                     success: false,
-                    message: "Missing username or password"
+                    message: "Missing email or password"
                 });
             }
 
-            let user = await User.findOne({ username: req.body.username });
-            if (!user) {
+            let account = await Account.findOne({ email: req.body.email });
+            if (!account) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Incorrect username'
+                    message: 'Incorrect email'
                 });
             }
-            user = await User.findOne({email})
+            const user = await User.findOne({ account: account});
 
-
-            const isValidPassword = await bcrypt.compare(req.body.password, user.password);
+            const isValidPassword = await bcrypt.compare(req.body.password, account.password);
             if (!isValidPassword) {
                 return res.status(400).json({
                     success: false,
@@ -96,20 +118,22 @@ const authController = {
                 });
             }
             //all good
-            const { password, ...others } = user._doc;
-            const accessToken = await authController.generateAccesstoken(user);
+            const { password, ...others } = account._doc;
+            const accessToken = await authController.generateAccesstoken(account, user);
             return res.json({
                 success: true,
                 message: 'Login successfully',
+                user: user,
                 ...others,
                 accessToken
+
             });
 
 
         } catch (error) {
             return res.status(500).json({
                 success: false,
-                message: 'Internal server error'
+                message: error.message
             });
         }
     }
