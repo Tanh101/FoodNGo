@@ -8,25 +8,31 @@ require('dotenv').config();
 
 const authController = {
     register: async (req, res) => {
-        const { email, password, role, name, dob, gender, phone, avatar, location, address } = req.body;
+        let { email, role, name, dob, gender, phone, avatar, location, address } = req.body;
         try {
-            const user = await User.findOne({ email });
+            let user = await Account.findOne({ email });
             if (user) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Username already taken'
+                    message: 'Email already taken'
                 });
             }
+            user = await User.findOne({ phone });
+            if (user) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Phone number already taken'
+                });
+            }            
             //All good
             const salt = await bcrypt.genSalt(10);
-            const hashedPassword = 'dfsdfasdfdsfsaf';
+            const hashedPassword = await bcrypt.hash(req.body.password, salt);
             let newAccount = new Account({
                 email,
                 password: hashedPassword,
                 role
             });
             newAccount = await newAccount.save();
-            console.log(newAccount);
             const newUser = new User({
                 name,
                 dob,
@@ -38,17 +44,18 @@ const authController = {
                 address,
             });
             await newUser.save();
+            const { password, ...others } = newAccount._doc;
             return res.json({
                 success: true,
                 message: 'Register successfully',
-                user: newUser
+                ...others,
+                user: newUser,
             });
 
         } catch (error) {
-            console.log(error);
             return res.status(500).json({
                 success: false,
-                message: 'Internal server error'
+                message: error.message
             });
         }
     },
@@ -71,13 +78,15 @@ const authController = {
                 });
             }
 
-            const user = await User.findOne({ username: req.body.username });
+            let user = await User.findOne({ username: req.body.username });
             if (!user) {
                 return res.status(400).json({
                     success: false,
                     message: 'Incorrect username'
                 });
             }
+            user = await User.findOne({email})
+
 
             const isValidPassword = await bcrypt.compare(req.body.password, user.password);
             if (!isValidPassword) {

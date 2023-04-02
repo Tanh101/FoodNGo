@@ -11,8 +11,6 @@ const AccountSchema = new Schema({
     password: {
         type: String,
         required: true,
-        maxLength: 20 
-
     }, 
     role: {
         type: String,
