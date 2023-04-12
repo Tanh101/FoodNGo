@@ -19,12 +19,32 @@ const auth = {
         }
 
     },
-    checkRole: (req, res, next) => {
-        if(req.user.role === "admin"){
+    checkRole: (role) => {
+        return (req, res, next) => {
+            const userRole = req.user.role;
+            if (userRole === role) {
+                next();
+            } else {
+                return res.status(403).json("You do not have permission to access this resource");
+            }
+        };
+    },
+    checkRestaurantPermission: (req, res, next) => {
+        const userId = req.user.id;
+        const restaurantId = req.params.id;
+        if (userId === restaurantId) {
             next();
+        } else {
+            return res.status(403).json("You do not have permission to access this resource");
         }
-        else{
-            return res.status(403).json("You are not allowed to do that");
+    }, 
+    checkUserPermission: (req, res, next) => {
+        const userId = req.user.id;
+        const userId2 = req.params.id;
+        if (userId === userId2) {
+            next();
+        } else {
+            return res.status(403).json("You do not have permission to access this resource");
         }
     }
 }

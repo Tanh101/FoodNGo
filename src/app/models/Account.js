@@ -16,8 +16,14 @@ const AccountSchema = new Schema({
         type: String,
         required: true,
         default: 'guest',
-        enum: ['guest', 'user', 'admin', 'seller', 'shipper']
+        enum: ['guest', 'user', 'admin', 'restaurant', 'shipper']
 
+    },
+    status: {
+        type: String,
+        required: true,
+        default: 'active',
+        enum: ['active', 'inactive', 'deleted']
     },
     delete_at : {
         type: Date,
