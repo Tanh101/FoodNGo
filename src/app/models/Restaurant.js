@@ -8,14 +8,22 @@ const RetstaurantSchema = new mongoose.Schema({
         unique: true
     },
     address: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'address',
-        required: true,
+        stress: {
+            type: String,
+        },
+        province: {
+            type: String
+        },
+        district: {
+            type: String
+        },
+        commute: {
+            type: String
+        },
     },
     location: {
         type: {
             type: String,
-            enum: ['Point'],
             required: true
         },
         coordinates: {
@@ -52,8 +60,8 @@ const RetstaurantSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
-        default: 'online',
-        enum: ['online', 'busy', 'offline'],
+        default: 'pending',
+        enum: ['online', 'busy', 'offline', 'deleted'],
     },
     delete_at: {
         type: Date,
@@ -64,4 +72,4 @@ const RetstaurantSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-module.exports = mongoose.exports('restaurant', RetstaurantSchema);
+module.exports = mongoose.model('restaurant', RetstaurantSchema);
