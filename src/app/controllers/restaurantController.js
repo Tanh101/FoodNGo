@@ -18,7 +18,7 @@ const restaurantController = {
     createRestaurant: async (req, res) => {
         try {
             const res = req.body;
-            
+
             const restaurant = new Restaurant({
                 name: res.name,
                 address: res.address,
@@ -46,7 +46,7 @@ const restaurantController = {
             });
         }
     },
-    
+
     getAllRestaurants: async (req, res) => {
         try {
             const restaurants = await Restaurant.find();
@@ -85,15 +85,26 @@ const restaurantController = {
         }
     },
 
-    deleteRestaurantById: async (req, res) => {
+    //update status to offline
+    updateRestaurantStatus: async (req, res) => {
         try {
-            const restaurant = await Restaurant.findByIdAndDelete(req.params.id);
+            const status = req.body.status;
+            if (status !== 'offline' || status !== 'online' || status !== 'deleted') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid status',
+                });
+            }
+
+            const restaurant = await Restaurant.findOne({ _id: req.params.id });
             if (!restaurant) {
                 return res.status(404).json({
                     success: false,
                     message: 'Restaurant not found',
                 });
             }
+            restaurant.status = status;
+            await restaurant.save();
             return res.json({
                 success: true,
                 message: 'Delete restaurant successfully',
@@ -105,6 +116,7 @@ const restaurantController = {
                 message: error.message
             });
         }
+        //update status
     },
 
     updateRestaurantById: async (req, res) => {
@@ -123,6 +135,7 @@ const restaurantController = {
                     status: res.status,
                     delete_at: res.delete_at,
                 }, { new: true });
+
             if (!restaurant) {
                 return res.status(404).json({
                     success: false,

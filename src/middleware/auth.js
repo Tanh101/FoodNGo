@@ -3,18 +3,18 @@ const jwt = require('jsonwebtoken');
 const auth = {
     verifyToken: (req, res, next) => {
         const token = req.headers.authorization;
-        if(token){
+        if (token) {
             //bearer 123333
             const accessToken = token.split(" ")[1];
-            jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, user) =>{
-                if(err){
+            jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+                if (err) {
                     return res.status(403).json("Token is not valid");
                 }
-                req.user= user;
+                req.user = user;
                 next();
             });
         }
-        else{
+        else {
             return res.status(401).json("You are not authenticated");
         }
 
@@ -29,19 +29,21 @@ const auth = {
             }
         };
     },
-    checkRestaurantPermission: (req, res, next) => {
+
+    checkPermission: (req, res, next) => {
         const userId = req.user.id;
-        const restaurantId = req.params.id;
-        if (userId === restaurantId) {
+        const id = req.params.id;
+        if (userId === id) {
             next();
         } else {
             return res.status(403).json("You do not have permission to access this resource");
         }
-    }, 
-    checkUserPermission: (req, res, next) => {
+    },
+
+    checkAdminOrCurrentRestaurant: (req, res, next) => {
         const userId = req.user.id;
-        const userId2 = req.params.id;
-        if (userId === userId2) {
+        const id = req.params.id;
+        if (userId === id && req.user.role === "restaurnt" || req.user.role === "admin") {
             next();
         } else {
             return res.status(403).json("You do not have permission to access this resource");

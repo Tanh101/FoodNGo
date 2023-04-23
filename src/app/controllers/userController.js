@@ -21,11 +21,19 @@ const userController = {
         const { id } = req.params;
         try {
             const user = await User.findById(id);
-            return res.status(200).json({
-                success: true,
-                message: 'Get user successfully',
-                user: user
-            });
+            if (user) {
+                return res.status(200).json({
+                    success: true,
+                    message: 'Get user successfully',
+                    user: user
+                });
+            }
+            else {
+                return res.status(404).json({
+                    success: false,
+                    message: 'User not found'
+                });
+            }
         } catch (error) {
             return res.status(500).json({
                 success: false,
@@ -33,6 +41,7 @@ const userController = {
             });
         }
     },
+
     updateUserById: async (req, res) => {
         const { id } = req.params;
         const { name, dob, gender, phone, avatar, location, address } = req.body;

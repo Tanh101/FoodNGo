@@ -60,8 +60,8 @@ const RetstaurantSchema = new mongoose.Schema({
     status: {
         type: String,
         required: true,
-        default: 'online',
-        enum: ['online', 'busy', 'offline'],
+        default: 'pending',
+        enum: ['online', 'busy', 'offline', 'deleted'],
     },
     delete_at: {
         type: Date,

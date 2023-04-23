@@ -67,7 +67,7 @@ const authController = {
             accountId: account._id,
             role: account.role,
             userId: user._id,
-        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30s' });
+        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1000s' });
         return accessToken;
     },
     generateRefreshToken: async (account, user) => {
@@ -145,8 +145,8 @@ const authController = {
             }
 
             const account = await Account.findById(id);
-            if (!account) {
-                return res.status(404).json({
+            if (!account) {               
+                return res.status(404).json({ 
                     success: false,
                     message: 'Account not found',
                 });

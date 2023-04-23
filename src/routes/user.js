@@ -9,7 +9,9 @@ const router = express.Router();
 //@desc Get all users
 //@access private
 // auth.verifyToken, 
-router.get('/',auth.verifyToken, auth.checkRole("admin"), userController.getAllusers);
+router.get('/', auth.verifyToken,
+    auth.checkRole("admin"),
+    userController.getAllusers);
 
 //@route GET /:id
 //@desc Get user by id
@@ -26,7 +28,7 @@ router.get('/:id',
 router.put('/:id',
     validateMiddleware.updateUser,
     auth.verifyToken,
-    auth.checkUserPermission,
+    auth.checkPermission,
     userController.updateUserById
 );
 
