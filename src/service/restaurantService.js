@@ -1,8 +1,8 @@
 const { Client } = require('@googlemaps/google-maps-services-js');
 const Restaurant = require('../app/models/Restaurant');
 
-class RestaurantService {
-    async findNearbyRestaurants(req, res) {
+const restaurantService = {
+    findNearbyRestaurants : async (req, res) => {
         try {
             // Lấy vị trí từ query parameter
             const location = req.body.location;
@@ -28,9 +28,19 @@ class RestaurantService {
                 error: 'Failed to fetch restaurants'
             });
         }
-    }
+    },
 
-    
-}
+    createRestaurant : async (req, res) => {
+        try {
+            let { name, phone, avatar, location, address } = req.body;
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
 
-module.exports = RestaurantService;
+};
+
+module.exports = restaurantService;

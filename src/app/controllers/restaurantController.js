@@ -1,6 +1,5 @@
 const express = require('express');
 const Restaurant = require('../models/Restaurant');
-const RestaurantService = require('../../service/restaurantService');
 
 const restaurantController = {
 
@@ -50,11 +49,19 @@ const restaurantController = {
     getAllRestaurants: async (req, res) => {
         try {
             const restaurants = await Restaurant.find();
-            return res.json({
-                success: true,
-                message: 'Get all restaurants successfully',
-                restaurants,
-            });
+            if (!restaurants) {
+                return res.json({
+                    success: true,
+                    message: 'Get all restaurants successfully',
+                    restaurants,
+                });
+            }
+            else {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Restaurant not found',
+                });
+            }
         } catch (error) {
             return res.status(500).json({
                 success: false,
