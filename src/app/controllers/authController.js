@@ -5,12 +5,15 @@ const Account = require('../models/Account');
 const userController = require('./userController');
 const constants = require('../../utils/constants');
 const express = require('express');
+const userService = require("../../service/userService");
+const restaurantService = require("../../service/restaurantService");
 require('dotenv').config();
 
 
 const authController = {
     register: async (req, res) => {
-        let { email, role, name, dob, gender, phone, avatar, location, address } = req.body;
+        let newUser = null;
+        let { email, role, phone } = req.body;
         try {
             let user = await Account.findOne({ email });
             if (user) {
@@ -19,39 +22,51 @@ const authController = {
                     message: 'Email already taken'
                 });
             }
-            user = await User.findOne({ phone });
-            if (user) {
+
+            let isExitPhone = await User.findOne({ phone });
+            if (isExitPhone) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Phone number already taken'
+                    message: 'Phone number already exists'
                 });
-            }            
+            }
+
+
             //All good
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+            let state = constants.ACCOUNT_STATUS_ACTIVE;
+            if (role === 'restaurant' || role === 'shipper') {
+                state = constants.ACCOUNT_STATUS_PENDING;
+            }
+
             let newAccount = new Account({
                 email,
                 password: hashedPassword,
-                role
+                role,
+                status: state || constants.ACCOUNT_STATUS_ACTIVE,
             });
             newAccount = await newAccount.save();
-            const newUser = new User({
-                name,
-                dob,
-                gender,
-                phone,
-                avatar,
-                account: newAccount._id,
-                location,
-                address,
-            });
-            await newUser.save();
-            const { password, ...others } = newAccount._doc;
-            return res.json({
-                success: true,
-                message: 'Register successfully',
-                ...others,
-                user: newUser,
+            if (role === 'user') {
+                newUser = await userService.createUser(req, res, newAccount._id);
+            } else if (role === 'restaurant') {
+                restaurantService.createRestaurant(req, res);
+            } else if (role === 'shipper') {
+                userService.createUser(req, res);
+            }
+            const {password, ...other} = newAccount._doc;
+            if (newUser && newAccount) {
+                return res.status(201).json({
+                    success: true,
+                    message: 'Register successfully',
+                    user: newUser,
+                    ...other,
+                });
+            }
+            return res.status(500).json({
+                success: false,
+                message: 'Server error',
             });
 
         } catch (error) {
@@ -102,8 +117,14 @@ const authController = {
                     message: 'Account is deleted'
                 });
             }
+            if (account.status === constants.ACCOUNT_STATUS_PENDING) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Account is pending'
+                });
+            }
 
-            const user = await User.findOne({ account: account});
+            const user = await User.findOne({ account: account });
 
             const isValidPassword = await bcrypt.compare(req.body.password, account.password);
             if (!isValidPassword) {
@@ -137,7 +158,7 @@ const authController = {
         try {
             const { id } = req.params;
             const { status } = req.body;
-            if( status !== "active" && status !== "inactive" && status !== "deleted" ){
+            if (status !== "active" && status !== "inactive" && status !== "deleted") {
                 return res.status(400).json({
                     success: false,
                     message: 'Status is not valid',
@@ -145,8 +166,8 @@ const authController = {
             }
 
             const account = await Account.findById(id);
-            if (!account) {               
-                return res.status(404).json({ 
+            if (!account) {
+                return res.status(404).json({
                     success: false,
                     message: 'Account not found',
                 });
@@ -170,7 +191,7 @@ const authController = {
         try {
             const { id } = req.params;
             const { role } = req.body;
-            if( role !== "admin" && role !== "user" && role !== "restaurant" && role !== "shipper" && role !== "guest" ){
+            if (role !== "admin" && role !== "user" && role !== "restaurant" && role !== "shipper" && role !== "guest") {
                 return res.status(400).json({
                     success: false,
                     message: 'Role is not valid',

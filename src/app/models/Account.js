@@ -23,7 +23,7 @@ const AccountSchema = new Schema({
         type: String,
         required: true,
         default: 'active',
-        enum: ['active', 'inactive', 'deleted']
+        enum: ['active', 'inactive', 'deleted', 'pending']
     },
     delete_at : {
         type: Date,

@@ -28,7 +28,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
 
 //restaurant api
-app.use('api/restaurant', restaurantRouter);
+app.use('/api/restaurant', restaurantRouter);
 
 
 //START SERVER
