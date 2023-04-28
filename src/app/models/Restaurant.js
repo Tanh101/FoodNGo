@@ -22,10 +22,6 @@ const RetstaurantSchema = new mongoose.Schema({
         },
     },
     location: {
-        type: {
-            type: String,
-            required: true
-        },
         coordinates: {
             type: [Number],
             required: true
@@ -61,11 +57,16 @@ const RetstaurantSchema = new mongoose.Schema({
         type: String,
         required: true,
         default: 'pending',
-        enum: ['online', 'busy', 'offline', 'deleted'],
+        enum: ['pending', 'online', 'busy', 'offline', 'deleted'],
     },
     delete_at: {
         type: Date,
         default: null,
+    },
+    account: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'account',
+        required: true,
     },
 
 

@@ -7,12 +7,16 @@ const constants = require('../../utils/constants');
 const express = require('express');
 const userService = require("../../service/userService");
 const restaurantService = require("../../service/restaurantService");
+const Restaurant = require("../models/Restaurant");
 require('dotenv').config();
 
 
 const authController = {
     register: async (req, res) => {
         let newUser = null;
+        let newRestaurant = null;
+        let newShipper = null;
+
         let { email, role, phone } = req.body;
         try {
             let user = await Account.findOne({ email });
@@ -22,13 +26,13 @@ const authController = {
                     message: 'Email already taken'
                 });
             }
-
-            let isExitPhone = await User.findOne({ phone });
-            if (isExitPhone) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Phone number already exists'
-                });
+            let isExitPhone = null;
+            if (role === 'user') {
+                isExitPhone = await User.findOne({ phone });
+            } else if (role === 'restaurant') {
+                isExitPhone = await Restaurant.findOne({ phone });
+            } else if (role === 'shipper') {
+                console.log('doing');
             }
 
 
@@ -51,11 +55,11 @@ const authController = {
             if (role === 'user') {
                 newUser = await userService.createUser(req, res, newAccount._id);
             } else if (role === 'restaurant') {
-                restaurantService.createRestaurant(req, res);
+               newRestaurant = await restaurantService.createRestaurant(req, res, newAccount._id);
             } else if (role === 'shipper') {
                 userService.createUser(req, res);
             }
-            const {password, ...other} = newAccount._doc;
+            const { password, ...other } = newAccount._doc;
             if (newUser && newAccount) {
                 return res.status(201).json({
                     success: true,
@@ -64,6 +68,16 @@ const authController = {
                     ...other,
                 });
             }
+
+            if(newRestaurant && newAccount){
+                return res.status(201).json({
+                    success: true,
+                    message: 'Register successfully',
+                    restaurant: newRestaurant,
+                    ...other,
+                });
+            }
+
             return res.status(500).json({
                 success: false,
                 message: 'Server error',
