@@ -1,5 +1,6 @@
 const express = require('express');
 const Restaurant = require('../models/Restaurant');
+const restaurantService = require('../../service/restaurantService');
 
 const restaurantController = {
 
@@ -47,20 +48,29 @@ const restaurantController = {
     },
 
     getAllRestaurants: async (req, res) => {
+        let restaurants = null;
         try {
-            const restaurants = await Restaurant.find();
-            if (!restaurants) {
-                return res.json({
-                    success: true,
-                    message: 'Get all restaurants successfully',
-                    restaurants,
-                });
-            }
-            else {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Restaurant not found',
-                });
+            const role = req.query.role;
+            const longtitude = req.query.longtitude;
+            const latitude = req.query.latitude;
+  
+            if (role === 'admin') {
+                restaurants = await Restaurant.find();
+            } else {
+                restaurants = await restaurantService.findNearbyRestaurants(req, res);
+                if (restaurants) {
+                    return res.json({
+                        success: true,
+                        message: 'Get all restaurants successfully',
+                        restaurants,
+                    });
+                }
+                else {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Restaurant not found',
+                    });
+                }
             }
         } catch (error) {
             return res.status(500).json({

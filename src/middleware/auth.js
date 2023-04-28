@@ -33,7 +33,7 @@ const auth = {
     checkPermission: (req, res, next) => {
         const userId = req.user.id;
         const id = req.params.id;
-        if (userId === id) {
+        if (userId === id || req.user.role === "admin") {
             next();
         } else {
             return res.status(403).json("You do not have permission to access this resource");
