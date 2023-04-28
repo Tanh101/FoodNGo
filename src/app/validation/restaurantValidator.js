@@ -10,7 +10,6 @@ const RestaurantValidator = (data) => {
             commute: Joi.string()
         }),
         location: Joi.object({
-            type: Joi.string().required(),
             coordinates: Joi.array().required()
         }),
         media: Joi.array().items(Joi.object({

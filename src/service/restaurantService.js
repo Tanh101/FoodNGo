@@ -2,7 +2,7 @@ const { Client } = require('@googlemaps/google-maps-services-js');
 const Restaurant = require('../app/models/Restaurant');
 
 const restaurantService = {
-    findNearbyRestaurants : async (req, res) => {
+    findNearbyRestaurants: async (req, res) => {
         try {
             // Lấy vị trí từ query parameter
             const location = req.body.location;
@@ -30,16 +30,46 @@ const restaurantService = {
         }
     },
 
-    createRestaurant : async (req, res) => {
+    createRestaurant: async (req, res, idAccount) => {
         try {
-            let { name, phone, avatar, location, address } = req.body;
-        } catch (error) {
-            return res.status(500).json({
-                success: false,
-                message: error.message
+            let { name, address, location, media, url, phone, description, rate } = req.body;
+            const restaurant = await Restaurant.findOne({ phone });
+            if (restaurant) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Phone number already exists'
+                });
+            }
+            const newRestaurant = new Restaurant({
+                name,
+                address,
+                location,
+                media,
+                url,
+                phone,
+                description,
+                rate,
+                account: idAccount
             });
+            const savedRestaurant = await newRestaurant.save();
+            return savedRestaurant;
+        } catch (error) {
+            console.error(error);
+            return null;
         }
     },
+
+    getRestaurantById: async (req, res) => {
+        try {
+            const restaurant = await Restaurant.findById(req.params.id);
+            return res.json(restaurant);
+        } catch (error) {
+            return res.status(500).json({
+                error: 'Failed to fetch restaurant'
+            });
+        }
+    }
+    
 
 };
 
