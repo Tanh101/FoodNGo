@@ -22,6 +22,11 @@ const RetstaurantSchema = new mongoose.Schema({
         },
     },
     location: {
+        type: {
+            type: String,
+            default: ['Point'],
+            required: true
+        },
         coordinates: {
             type: [Number],
             required: true
@@ -73,4 +78,5 @@ const RetstaurantSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
+RetstaurantSchema.index({ location: "2dsphere" });
 module.exports = mongoose.model('restaurant', RetstaurantSchema);

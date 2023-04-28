@@ -18,7 +18,7 @@ router.get('/', auth.verifyToken,
 //@access private
 router.get('/:id',
     auth.verifyToken,
-    auth.checkRole("admin"),
+    auth.checkPermission,
     userController.getUserById
 );
 
