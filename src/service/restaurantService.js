@@ -81,9 +81,22 @@ const restaurantService = {
                 error: 'Failed to fetch restaurant'
             });
         }
+    },
+
+    getRestaurantByAccount: async (req, res) => {
+        try {
+            const restaurant = await Restaurant.findOne({ account: req.params.id });
+            return res.json(restaurant);
+        } catch (error) {
+            return res.status(500).json({
+                error: 'Failed to fetch restaurant'
+            });
+        }
     }
 
 
 };
+
+
 
 module.exports = restaurantService;

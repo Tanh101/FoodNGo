@@ -53,10 +53,10 @@ const restaurantController = {
             const role = req.query.role;
             const longtitude = req.query.longtitude;
             const latitude = req.query.latitude;
-  
+
             if (role === 'admin') {
-                restaurants = await Restaurant.find();
-            } else {
+                // restaurants = await Restaurant.find();
+            } else if (longtitude && latitude) {
                 restaurants = await restaurantService.findNearbyRestaurants(req, res);
                 if (restaurants) {
                     return res.json({
@@ -71,6 +71,14 @@ const restaurantController = {
                         message: 'Restaurant not found',
                     });
                 }
+            }
+            else {
+                restaurants = await Restaurant.find({ status: 'online' });
+                return res.json({
+                    success: true,
+                    message: 'Get all restaurants successfully',
+                    restaurants,
+                });
             }
         } catch (error) {
             return res.status(500).json({
