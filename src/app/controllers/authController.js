@@ -96,7 +96,7 @@ const authController = {
             accountId: account._id,
             role: account.role,
             userId: user._id,
-        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1000s' });
+        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '365d' });
         return accessToken;
     },
     generateRefreshToken: async (account, user) => {
@@ -104,7 +104,7 @@ const authController = {
             accountId: account._id,
             role: account.role,
             userId: user._id,
-        }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
+        }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '365d' });
         return refreshToken;
     },
 
@@ -232,11 +232,6 @@ const authController = {
             });
         }
     },
-
-
-
-
-
 };
 
 module.exports = authController;
