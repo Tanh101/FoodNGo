@@ -5,14 +5,6 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
-//@route GET user/
-//@desc Get all users
-//@access private
-// auth.verifyToken, 
-router.get('/', auth.verifyToken,
-    auth.checkRole("admin"),
-    userController.getAllusers);
-
 //@route GET /:id
 //@desc Get user by id
 //@access private

@@ -97,6 +97,13 @@ const restaurantController = {
                     message: 'Restaurant not found',
                 });
             }
+            if (restaurant.status === 'pending' || restaurant.status === 'deleted') {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Restaurant not found',
+                });
+            }
+
             return res.json({
                 success: true,
                 message: 'Get restaurant successfully',
@@ -146,19 +153,18 @@ const restaurantController = {
 
     updateRestaurantById: async (req, res) => {
         try {
-            const res = req.body;
+            const {name, address, location, media, url, phone, description, rate, status} = req.body;
             const restaurant = await Restaurant.
                 findByIdAndUpdate(req.params.id, {
-                    name: res.name,
-                    address: res.address,
-                    location: res.location,
-                    media: res.media,
-                    url: res.url,
-                    phone: res.phone,
-                    description: res.description,
-                    rate: res.rate,
-                    status: res.status,
-                    delete_at: res.delete_at,
+                    name,
+                    address,
+                    location,
+                    media,
+                    url,
+                    phone,
+                    description,
+                    rate,
+                    status
                 }, { new: true });
 
             if (!restaurant) {

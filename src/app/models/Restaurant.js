@@ -24,7 +24,7 @@ const RetstaurantSchema = new mongoose.Schema({
     location: {
         type: {
             type: String,
-            default: ['Point'],
+            default: 'Point',
             required: true
         },
         coordinates: {
