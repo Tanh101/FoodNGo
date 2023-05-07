@@ -14,11 +14,15 @@ router.get('/restaurant', auth.verifyToken, auth.checkRole('admin'), dashboardCo
 // @access private: only admin
 router.put('/restaurant/:id', auth.verifyToken, auth.checkRole('admin'), dashboardController.approveRestaurant);
 
+// @route GET /restaurant/:id
+// @desc Get restaurant by id
+// @access private: only admin
+router.get('/restaurant/:id', auth.verifyToken, auth.checkRole('admin'), dashboardController.getRestaurantById);
+
+
 // @route GET /user
 // @desc Get all users
 // @access private: only admin
 router.get('/user', auth.verifyToken, auth.checkRole('admin'), dashboardController.getAllUsers);
-
-
 
 module.exports = router;

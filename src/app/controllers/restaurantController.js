@@ -54,9 +54,7 @@ const restaurantController = {
             const longtitude = req.query.longtitude;
             const latitude = req.query.latitude;
 
-            if (role === 'admin') {
-                // restaurants = await Restaurant.find();
-            } else if (longtitude && latitude) {
+            if (longtitude && latitude) {
                 restaurants = await restaurantService.findNearbyRestaurants(req, res);
                 if (restaurants) {
                     return res.json({
@@ -153,7 +151,7 @@ const restaurantController = {
 
     updateRestaurantById: async (req, res) => {
         try {
-            const {name, address, location, media, url, phone, description, rate, status} = req.body;
+            const { name, address, location, media, url, phone, description, rate, status } = req.body;
             const restaurant = await Restaurant.
                 findByIdAndUpdate(req.params.id, {
                     name,
