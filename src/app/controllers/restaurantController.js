@@ -50,7 +50,6 @@ const restaurantController = {
     getAllRestaurants: async (req, res) => {
         let restaurants = null;
         try {
-            const role = req.query.role;
             const longtitude = req.query.longtitude;
             const latitude = req.query.latitude;
 

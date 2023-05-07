@@ -21,7 +21,7 @@ const restaurantService = {
                             coordinates
                         },
                         key: 'location',
-                        maxDistance: parseFloat(3000000),
+                        maxDistance: parseFloat(5000),
                         distanceField: 'dist.calculated',
                         spherical: true
                     }
