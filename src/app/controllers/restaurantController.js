@@ -50,10 +50,10 @@ const restaurantController = {
     getAllRestaurants: async (req, res) => {
         let restaurants = null;
         try {
-            const longtitude = req.query.longtitude;
+            const longitude = req.query.longitude;
             const latitude = req.query.latitude;
 
-            if (longtitude && latitude) {
+            if (longitude && latitude) {
                 restaurants = await restaurantService.findNearbyRestaurants(req, res);
                 if (restaurants) {
                     return res.json({

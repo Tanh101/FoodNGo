@@ -6,7 +6,7 @@ const restaurantService = {
     findNearbyRestaurants: async (req, res) => {
         try {
             // Lấy vị trí từ query parameter
-            const longitude = req.query.longtitude;
+            const longitude = req.query.longitude;
             const latitude = req.query.latitude;
 
 
