@@ -28,7 +28,7 @@ const ProductSchema = new Schema({
         ref: 'restaurant',
         required: true
     },
-    amount: {
+    quantity: {
         type: Number,
         required: true
         
@@ -38,3 +38,5 @@ const ProductSchema = new Schema({
         default: null
     },
 }, {timestamps: true});
+
+const Product = mongoose.model('product', ProductSchema);
