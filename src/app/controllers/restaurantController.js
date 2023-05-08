@@ -1,5 +1,6 @@
 const express = require('express');
 const Restaurant = require('../models/Restaurant');
+const Product = require('../models/Product');
 const restaurantService = require('../../service/restaurantService');
 
 const restaurantController = {
@@ -181,7 +182,63 @@ const restaurantController = {
                 message: error.message
             });
         }
+    },
+
+
+
+    //-------------------------------------------product-------------------------------------------
+    //create product
+    createProduct: async (req, res) => {
+        try {
+            const { name, price, description, media, status, restaurantId } = req.body;
+            const product = new Product({
+                name,
+                price,
+                description,
+                media,
+                status,
+                restaurantId
+            });
+            await product.save();
+            return res.json({
+                success: true,
+                message: 'Create product successfully',
+                product,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+    },
+
+    getProductsByRestaurantId: async (req, res) => {
+        try {
+            const products = await Product.find({ restaurant: req.params.id });
+            if (!products) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Products not found',
+                });
+            }
+            return res.status(200).json({
+                success: true,
+                message: 'Get products successfully',
+                products,
+            })
+        } catch (error) {
+            return res.status(500).json({
+                error: 'Failed to fetch products'
+            });
+        }
     }
+
+
+
+
+
 
 }
 
