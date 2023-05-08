@@ -10,6 +10,7 @@ const restaurantService = require("../../service/restaurantService");
 const Restaurant = require("../models/Restaurant");
 require('dotenv').config();
 
+const refreshTokens = {};
 
 const authController = {
     register: async (req, res) => {
@@ -55,7 +56,7 @@ const authController = {
             if (role === 'user') {
                 newUser = await userService.createUser(req, res, newAccount._id);
             } else if (role === 'restaurant') {
-               newRestaurant = await restaurantService.createRestaurant(req, res, newAccount._id);
+                newRestaurant = await restaurantService.createRestaurant(req, res, newAccount._id);
             } else if (role === 'shipper') {
                 userService.createUser(req, res);
             }
@@ -69,7 +70,7 @@ const authController = {
                 });
             }
 
-            if(newRestaurant && newAccount){
+            if (newRestaurant && newAccount) {
                 return res.status(201).json({
                     success: true,
                     message: 'Register successfully',
@@ -93,21 +94,59 @@ const authController = {
 
     generateAccesstoken: async (account, user) => {
         const accessToken = jwt.sign({
-            accountId: account._id,
+            email: account.email,
             role: account.role,
             userId: user._id,
-        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '365d' });
+        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30d' });
         return accessToken;
     },
     generateRefreshToken: async (account, user) => {
         const refreshToken = jwt.sign({
-            accountId: account._id,
             role: account.role,
-            userId: user._id,
-        }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '365d' });
+            email: account.email,
+            userId: user._id
+        }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '300s' });
         return refreshToken;
     },
 
+    refreshAccessToken: async (req, res) => {
+        try {
+            const refreshToken = req.body.token;
+            if (!refreshToken || !refreshTokens[refreshToken]) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid refresh token'
+                });
+            }
+            jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decode) => {
+                if (err) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid refresh token'
+                    });
+                }
+
+                const newAccessToken = jwt.sign({
+                    email: decode.email,
+                    role: decode.role,
+                    userId: decode.userId
+                }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '300s' });
+
+                return res.json({
+                    success: true,
+                    message: 'Refresh token successfully',
+                    accessToken: newAccessToken
+                });
+            });
+
+        }
+        catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
 
     login: async (req, res) => {
         try {
@@ -151,16 +190,15 @@ const authController = {
             const { password, ...others } = account._doc;
             const accessToken = await authController.generateAccesstoken(account, user);
             const refreshToken = await authController.generateRefreshToken(account, user);
-            return res.json({
+            refreshTokens[refreshToken] = refreshToken;
+            return res.status(200).json({
                 success: true,
                 message: 'Login successfully',
                 user: user,
                 ...others,
                 accessToken,
+                refreshToken
             });
-
-
-
         } catch (error) {
             return res.status(500).json({
                 success: false,

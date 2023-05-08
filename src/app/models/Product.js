@@ -14,10 +14,17 @@ const ProductSchema = new Schema({
         type: String,
         required: true
     },
-    images: {
-        type: [String],
-        required: true
-    },
+    media: [{
+        type: {
+            type: String,
+            required: true,
+            enum: ['image', 'video']
+        },
+        url: {
+            type: String,
+            required: true
+        }
+    }],
     category: {
         type: Schema.Types.ObjectId,
         ref: 'category',
@@ -28,15 +35,16 @@ const ProductSchema = new Schema({
         ref: 'restaurant',
         required: true
     },
-    quantity: {
-        type: Number,
-        required: true
-        
+    status: {
+        type: String,
+        required: true,
+        default: 'active',
+        enum: ['active', 'inactive', 'deleted']
     },
     deleteAt: {
         type: Date,
         default: null
     },
-}, {timestamps: true});
+}, { timestamps: true });
 
 const Product = mongoose.model('product', ProductSchema);

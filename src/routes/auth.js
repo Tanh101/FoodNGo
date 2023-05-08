@@ -6,6 +6,11 @@ const auth = require('../middleware/auth');
 
 const router = express.Router();
 
+//@route GET auth/refresh
+//@desc Refresh token
+//@access public
+router.get('/token', authController.refreshAccessToken);
+
 //@route POST auth/register
 //@desc Register user
 //@access public
@@ -25,6 +30,7 @@ router.put('/delete/:id',auth.verifyToken, auth.checkRole("admin"),  authControl
 //@desc update user
 //@access public
 router.put('/:id', auth.verifyToken, auth.checkRole("admin"),  authController.updateRole);
+
 
 module.exports = router;
 
