@@ -150,13 +150,15 @@ const authController = {
 
     login: async (req, res) => {
         try {
+            let user = null;
+            let restaurant = null;
+            let shipper = null;
             if (!req.body.email || !req.body.password) {
                 return res.status(400).json({
                     success: false,
                     message: "Missing email or password"
                 });
             }
-
             let account = await Account.findOne({ email: req.body.email });
             if (!account) {
                 return res.status(400).json({
@@ -176,8 +178,12 @@ const authController = {
                     message: 'Account is pending'
                 });
             }
-
-            const user = await User.findOne({ account: account });
+            if(account.role === 'user')
+                user = await User.findOne({ account: account });
+            else if(account.role === 'restaurant')
+                user = await Restaurant.findOne({ account: account });
+            else if(account.role === 'shipper')
+                console.log('doing');
 
             const isValidPassword = await bcrypt.compare(req.body.password, account.password);
             if (!isValidPassword) {
@@ -200,6 +206,7 @@ const authController = {
                 refreshToken
             });
         } catch (error) {
+            console.log(error);
             return res.status(500).json({
                 success: false,
                 message: error.message
