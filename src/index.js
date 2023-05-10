@@ -10,6 +10,7 @@ const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
 const restaurantRouter = require("./routes/restaurant");
 const dashboardRouter = require('./routes/dashboard');
+const mapRouter = require('./routes/map');
 
 const app = express();
 
@@ -33,6 +34,9 @@ app.use('/api/restaurant', restaurantRouter);
 
 //dashboard api
 app.use('/api/dashboard', dashboardRouter);
+
+//map api
+app.use('/api/map', mapRouter);
 
 //START SERVER
 app.listen(process.env.PORT || 3306, () => {
