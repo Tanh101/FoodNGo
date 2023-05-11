@@ -7,7 +7,7 @@ const Account = require('../models/Account');
 const restaurantController = {
 
     findNearbyRestaurants: async (req, res) => {
-        const restaurants = RestaurantService.
+        const restaurants = restaurantService.
             findNearbyRestaurants(req, res);
         if (!restaurants) {
             return res.status(500).json({
