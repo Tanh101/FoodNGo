@@ -14,6 +14,28 @@ const restaurantService = {
 
 
             const coordinates = [longitude, latitude].map(parseFloat);
+            const allRestaurants = await Restaurant.aggregate([
+                {
+                    $geoNear: {
+                        near: {
+                            type: 'Point',
+                            coordinates
+                        },
+                        key: 'location',
+                        maxDistance: parseFloat(5000),
+                        distanceField: 'dist.calculated',
+                        spherical: true
+                    }
+                },
+                {
+                    $match: {
+                        status: 'online'
+                    }
+                }
+            ]);
+
+            const totalPage = Math.ceil(allRestaurants.length / limit);
+            const totalResult = allRestaurants.length;
 
             const restaurants = await Restaurant.aggregate([
                 {
@@ -35,23 +57,29 @@ const restaurantService = {
                 },
                 {
                     $skip: (page - 1) * limit
-                }, 
+                },
                 {
                     $limit: limit
                 }
             ]);
 
-            const restaurantsWithDeliveryTime = restaurants.map(restaurant => {
+            const restaurantWithDeliveryTime = restaurants.map(restaurant => {
                 const distance = restaurant.dist.calculated;
                 const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : null;
 
                 return {
                     ...restaurant,
-                    deliveryTime
+                    deliveryTime,
                 };
             });
+            const pagination = {
+                totalPage,
+                totalResult,
+                currentPage: page,
+                restaurants: restaurantWithDeliveryTime
+            };
 
-            return restaurantsWithDeliveryTime;
+            return pagination;
 
         } catch (error) {
             console.error(error);
@@ -113,7 +141,5 @@ const restaurantService = {
 
 
 };
-
-
 
 module.exports = restaurantService;
