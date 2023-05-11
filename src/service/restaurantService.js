@@ -1,18 +1,20 @@
 
 const { Client } = require('@googlemaps/google-maps-services-js');
 const Restaurant = require('../app/models/Restaurant');
+const { AVERAGE_DELIVERY_SPPED, PREPARING_TIME } = require('../utils/constants');
 
 const restaurantService = {
     findNearbyRestaurants: async (req, res) => {
         try {
-            // Lấy vị trí từ query parameter
             const longitude = req.query.longitude;
             const latitude = req.query.latitude;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 18;
+
 
 
             const coordinates = [longitude, latitude].map(parseFloat);
 
-            // Tìm kiếm các nhà hàng gần vị trí người dùng trong cơ sở dữ liệu
             const restaurants = await Restaurant.aggregate([
                 {
                     $geoNear: {
@@ -30,11 +32,26 @@ const restaurantService = {
                     $match: {
                         status: 'online'
                     }
+                },
+                {
+                    $skip: (page - 1) * limit
+                }, 
+                {
+                    $limit: limit
                 }
             ]);
 
-            // Trả về kết quả
-            return restaurants;
+            const restaurantsWithDeliveryTime = restaurants.map(restaurant => {
+                const distance = restaurant.dist.calculated;
+                const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : null;
+
+                return {
+                    ...restaurant,
+                    deliveryTime
+                };
+            });
+
+            return restaurantsWithDeliveryTime;
 
         } catch (error) {
             console.error(error);
