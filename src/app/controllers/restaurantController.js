@@ -7,17 +7,20 @@ const Account = require('../models/Account');
 const restaurantController = {
 
     getAllRestaurants: async (req, res) => {
+        let restaurants = null;
         let pagination = null;
         try {
             const longitude = req.query.longitude;
             const latitude = req.query.latitude;
-
+            
             if (longitude && latitude) {
-                pagination = await restaurantService.findNearbyRestaurants(req, res);
-                if (pagination) {
+                restaurants = await restaurantService.findNearbyRestaurants(req, res);
+                pagination = await restaurantService.getPagingData(req, res);
+                if (restaurants && pagination) {
                     return res.json({
                         success: true,
                         message: 'Get all restaurants successfully',
+                        restaurants,
                         pagination,
                     });
                 }
@@ -29,11 +32,11 @@ const restaurantController = {
                 }
             }
             else {
-                pagination = await Restaurant.find({ status: 'online' });
+                restaurants = await Restaurant.find({ status: 'online' });
                 return res.json({
                     success: true,
                     message: 'Get all restaurants successfully',
-                    pagination,
+                    restaurants
                 });
             }
         } catch (error) {

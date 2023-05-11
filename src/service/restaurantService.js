@@ -4,15 +4,13 @@ const Restaurant = require('../app/models/Restaurant');
 const { AVERAGE_DELIVERY_SPPED, PREPARING_TIME } = require('../utils/constants');
 
 const restaurantService = {
-    findNearbyRestaurants: async (req, res) => {
+
+    getPagingData: async (req, res) => {
         try {
             const longitude = req.query.longitude;
             const latitude = req.query.latitude;
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 18;
-
-
-
             const coordinates = [longitude, latitude].map(parseFloat);
             const allRestaurants = await Restaurant.aggregate([
                 {
@@ -36,6 +34,24 @@ const restaurantService = {
 
             const totalPage = Math.ceil(allRestaurants.length / limit);
             const totalResult = allRestaurants.length;
+            const pagination = {
+                totalPage,
+                totalResult,
+                currentPage: page
+            }
+            return pagination;
+        } catch (error) {
+            return null;
+        }
+    },
+
+    findNearbyRestaurants: async (req, res) => {
+        try {
+            const longitude = req.query.longitude;
+            const latitude = req.query.latitude;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 18;
+            const coordinates = [longitude, latitude].map(parseFloat);
 
             const restaurants = await Restaurant.aggregate([
                 {
@@ -72,19 +88,11 @@ const restaurantService = {
                     deliveryTime,
                 };
             });
-            const pagination = {
-                totalPage,
-                totalResult,
-                currentPage: page,
-                restaurants: restaurantWithDeliveryTime
-            };
-
-            return pagination;
+            return restaurantWithDeliveryTime;
 
         } catch (error) {
             console.error(error);
             return null;
-
         }
     },
 
