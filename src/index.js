@@ -12,6 +12,7 @@ const restaurantRouter = require("./routes/restaurant");
 const dashboardRouter = require('./routes/dashboard');
 const productRouter = require('./routes/product');
 const mapRouter = require('./routes/map');
+const cartRouter = require('./routes/shoppingCart');
 
 const app = express();
 
@@ -38,8 +39,12 @@ app.use('/api/dashboard', dashboardRouter);
 
 //product api
 app.use('/api/product', productRouter);
+
 //map api
 app.use('/api/map', mapRouter);
+
+//shopping cart api
+app.use('/api/cart', cartRouter);
 
 //START SERVER
 app.listen(process.env.PORT || 3306, () => {

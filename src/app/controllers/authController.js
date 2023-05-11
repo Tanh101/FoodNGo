@@ -97,7 +97,7 @@ const authController = {
             email: account.email,
             role: account.role,
             userId: user._id,
-        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30d' });
+        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '300s' });
         return accessToken;
     },
     generateRefreshToken: async (account, user) => {
@@ -105,7 +105,7 @@ const authController = {
             role: account.role,
             email: account.email,
             userId: user._id
-        }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '300s' });
+        }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
         return refreshToken;
     },
 
@@ -178,10 +178,10 @@ const authController = {
                     message: 'Account is pending'
                 });
             }
-            if(account.role === 'user')
+            if(account.role === 'user' || account.role === 'admin')
                 user = await User.findOne({ account: account });
             else if(account.role === 'restaurant')
-                user = await Restaurant.findOne({ account: account });
+                user = await Restaurant.findOne({account: account });
             else if(account.role === 'shipper')
                 console.log('doing');
 
