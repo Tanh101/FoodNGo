@@ -1,5 +1,6 @@
 const express = require('express');
 const Product = require('../models/Product');
+const { stat } = require('fs');
 
 const productController = {
     createProduct: async (req, res) => {
@@ -29,8 +30,24 @@ const productController = {
 
     },
 
+    //get all products of a restaurant but with status
     getProductsByRestaurantId: async (req, res) => {
         try {
+            const status = req.query.status;
+            if (status) {
+                const products = await Product.find({ restaurant: req.user.userId, status: status });
+                if (!products) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Products not found',
+                    });
+                }
+                return res.status(200).json({
+                    success: true,
+                    message: 'Get products successfully',
+                    products,
+                });
+            }
             const products = await Product.find({ restaurant: req.user.userId });
             if (!products) {
                 return res.status(404).json({
