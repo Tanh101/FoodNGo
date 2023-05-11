@@ -38,7 +38,7 @@ const ProductSchema = new Schema({
         type: String,
         required: true,
         default: 'active',
-        enum: ['active', 'deleted']
+        enum: ['active', 'deleted', 'deactive']
     },
     deleteAt: {
         type: Date,
