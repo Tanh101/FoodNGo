@@ -26,9 +26,8 @@ const ProductSchema = new Schema({
         }
     }],
     category: {
-        type: Schema.Types.ObjectId,
-        ref: 'category',
-        required: true
+        type: String,
+        required: true,
     },
     restaurant: {
         type: Schema.Types.ObjectId,
@@ -39,7 +38,7 @@ const ProductSchema = new Schema({
         type: String,
         required: true,
         default: 'active',
-        enum: ['active', 'inactive', 'deleted']
+        enum: ['active', 'deleted', 'deactive']
     },
     deleteAt: {
         type: Date,
@@ -47,4 +46,4 @@ const ProductSchema = new Schema({
     },
 }, { timestamps: true });
 
-const Product = mongoose.model('product', ProductSchema);
+module.exports = mongoose.model('product', ProductSchema);
