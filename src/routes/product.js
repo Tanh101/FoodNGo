@@ -12,7 +12,7 @@ router.post('/', validateMiddleware.createProduct, auth.verifyToken, auth.checkR
 //route GET product/
 //@desc Get all products of a restaurant
 //@access public
-router.get('/', auth.verifyToken, auth.checkRole('restaurant'), productController.getProductsByRestaurantId);
+router.get('/:id', productController.getProductById);
 
 //route PUT product/:id
 //@desc Update product
