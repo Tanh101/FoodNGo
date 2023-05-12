@@ -5,6 +5,42 @@ const restaurantService = require('../../service/restaurantService');
 const Account = require('../models/Account');
 
 const restaurantController = {
+    getProductsByRestaurantId: async (req, res) => {
+        try {
+            const status = req.query.status;
+            if (status) {
+                const products = await Product.find({ restaurant: req.user.userId, status: status });
+                if (!products) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Products not found',
+                    });
+                }
+                return res.status(200).json({
+                    success: true,
+                    message: 'Get products successfully',
+                    products,
+                });
+            }
+            const products = await Product.find({ restaurant: req.params.id });
+            if (!products) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Products not found',
+                });
+            }
+            return res.status(200).json({
+                success: true,
+                message: 'Get products successfully',
+                products,
+            })
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
 
     getAllRestaurants: async (req, res) => {
         let restaurants = null;
@@ -12,7 +48,7 @@ const restaurantController = {
         try {
             const longitude = req.query.longitude;
             const latitude = req.query.latitude;
-            
+
             if (longitude && latitude) {
                 restaurants = await restaurantService.findNearbyRestaurants(req, res);
                 pagination = await restaurantService.getPagingData(req, res);

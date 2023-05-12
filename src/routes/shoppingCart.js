@@ -2,6 +2,8 @@ const router = require('express').Router();
 const shoppingCartController = require('../app/controllers/shoppingCartController');
 const auth = require('../middleware/auth');
 
+
+
 // @route GET /cart
 // @desc Get cart by user id
 // @access private: current user
@@ -26,7 +28,6 @@ router.put('/', auth.verifyToken, auth.checkRole('user'), shoppingCartController
 // @desc Delete item from cart
 // @access private: current user
 router.delete('/', auth.verifyToken, auth.checkRole('user'), shoppingCartController.deleteCart);
-
 
 
 module.exports = router;

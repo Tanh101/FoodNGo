@@ -4,6 +4,10 @@ const restaurantController = require('../app/controllers/restaurantController');
 const auth = require('../middleware/auth');
 const validateMiddleware = require('../middleware/validationMiddleware');
 
+//route GET /restaurant/:id/products
+//@desc Get all products of a restaurant
+//@access public
+router.get('/:id/products', restaurantController.getProductsByRestaurantId);
 
 // @route GET /restaurant
 // @desc Get all restaurants

@@ -30,42 +30,27 @@ const productController = {
 
     },
 
-    //get all products of a restaurant but with status
-    getProductsByRestaurantId: async (req, res) => {
+    getProductById: async (req, res) => {
         try {
-            const status = req.query.status;
-            if (status) {
-                const products = await Product.find({ restaurant: req.user.userId, status: status });
-                if (!products) {
-                    return res.status(404).json({
-                        success: false,
-                        message: 'Products not found',
-                    });
-                }
-                return res.status(200).json({
-                    success: true,
-                    message: 'Get products successfully',
-                    products,
-                });
-            }
-            const products = await Product.find({ restaurant: req.user.userId });
-            if (!products) {
+            const product = await Product.findById(req.params.id);
+            if (!product) {
                 return res.status(404).json({
                     success: false,
-                    message: 'Products not found',
+                    message: 'Product not found',
                 });
             }
             return res.status(200).json({
                 success: true,
-                message: 'Get products successfully',
-                products,
-            })
+                message: 'Get product successfully',
+                product
+            });
         } catch (error) {
             return res.status(500).json({
-                error: 'Failed to fetch products'
+                error: 'Failed to fetch product'
             });
         }
     },
+
 
     updateProduct: async (req, res) => {
         try {
