@@ -1,12 +1,21 @@
 const mongoose = require('mongoose');
 
 
-const CategorySchema = new  mongoose.Schema({
+const CategorySchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        enum: ['Cơm', 'Cháo', 'Bún', 'Nước giải khát', 'Trà sữa']
+        enum: [
+            'acclaimed', 'chicken', 'fast food', 'drinks', 'desserts',
+            'burgers', 'sandwiches', 'coffee', 'breakfast', 'bakery',
+             'healthy', 'vegan', 'pizza'
+        ]
     },
-});
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active'
+    }
+}, { timestamps: true });
 
 module.exports = mongoose.model('category', CategorySchema);

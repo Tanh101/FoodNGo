@@ -2,6 +2,7 @@ const express = require('express');
 const Restaurant = require('../models/Restaurant');
 const User = require('../models/User');
 const Account = require('../models/Account');
+const Category = require('../models/Category');
 
 const dashboardController = {
     getAllRestaurants: async (req, res) => {
@@ -173,7 +174,7 @@ const dashboardController = {
                 message: error.message
             });
         }
-    }
+    },
 }
 
 module.exports = dashboardController;

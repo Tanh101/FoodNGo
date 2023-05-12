@@ -1,18 +1,21 @@
 const express = require('express');
 const Product = require('../models/Product');
 const { stat } = require('fs');
+const Category = require('../models/Category');
+const categoryController = require('./categoryCotroller');
 
 const productController = {
     createProduct: async (req, res) => {
         try {
             const restaurantId = req.user.userId;
-            const { name, price, description, media, category } = req.body;
+            const { name, price, description, media, categories } = req.body;
+            const categoryIDs = await categoryController.getCategoryByName(categories);
             const newProduct = new Product({
                 name: name,
                 price: price,
                 description: description,
                 media: media,
-                category: category,
+                categories: categoryIDs,
                 restaurant: restaurantId
             })
             await newProduct.save();
