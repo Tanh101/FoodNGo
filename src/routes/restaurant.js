@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const restaurantController = require('../app/controllers/restaurantController');
 const auth = require('../middleware/auth');
 const validateMiddleware = require('../middleware/validationMiddleware');
+const restaurantController = require('../app/controllers/restaurantController');
+const orderController = require('../app/controllers/orderController');
 
 //route GET /restaurant/:id/products
 //@desc Get all products of a restaurant
@@ -34,6 +35,22 @@ router.delete('/:id', auth.verifyToken,
     auth.checkRole("restaurant"),
     auth.checkPermission,
     restaurantController.updateRestaurantStatus);
+
+router.get('/:id/orders', auth.verifyToken,
+    auth.checkRole("restaurant"),
+    auth.checkPermission,
+    orderController.getOrdersByRestaurant);
+
+router.put('/orders/:orderId/accept', auth.verifyToken,
+    auth.checkRole("restaurant"),
+    orderController.acceptPreparing);
+
+router.put('/orders/:orderId/refuse', auth.verifyToken,
+    auth.checkRole("restaurant"),
+    orderController.refuseOrder);
+
+
+
 
 module.exports = router;
 

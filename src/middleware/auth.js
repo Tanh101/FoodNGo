@@ -31,7 +31,7 @@ const auth = {
     },
 
     checkPermission: (req, res, next) => {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const id = req.params.id;
         if (userId === id || req.user.role === "admin") {
             next();
@@ -41,7 +41,7 @@ const auth = {
     },
 
     checkAdminOrCurrentRestaurant: (req, res, next) => {
-        const userId = req.user.id;
+        const userId = req.user.userId;
         const id = req.params.id;
         if (userId === id && req.user.role === "restaurnt" || req.user.role === "admin") {
             next();

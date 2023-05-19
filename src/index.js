@@ -14,7 +14,6 @@ const productRouter = require('./routes/product');
 const mapRouter = require('./routes/map');
 const cartRouter = require('./routes/shoppingCart');
 const categoryRouter = require('./routes/category');
-
 const app = express();
 
 dotenv.config();

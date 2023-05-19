@@ -2,6 +2,7 @@ const express = require('express');
 const userController = require('../app/controllers/userController');
 const validateMiddleware = require('../middleware/validationMiddleware');
 const auth = require('../middleware/auth');
+const orderController = require('../app/controllers/orderController');
 
 const router = express.Router();
 
@@ -23,6 +24,8 @@ router.put('/:id',
     auth.checkPermission,
     userController.updateUserById
 );
+
+router.post('/order', auth.verifyToken, auth.checkRole("user"), orderController.createOrder)
 
 
 
