@@ -10,18 +10,18 @@ const OrderSchema = new Schema({
     shipper: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',
-        required: true
+        default: null
     },
     paymentMethod: {
         type: String,
         required: true,
         enum: ['cash', 'card']
     },
-    orderStatus: {
+    status: {
         type: String,
         required: true,
-        default: 'preparing',
-        enum: ['accepted', 'preparing', 'ready', 'delivered', 'delivering', 'cancelled']
+        default: 'ordered',
+        enum: ['unavailable', 'ordered', 'accepted', 'preparing', 'ready', 'delivered', 'delivering', 'cancelled']
     },
     paymentStatus: {
         type: String,
@@ -55,10 +55,11 @@ const OrderSchema = new Schema({
                         required: true
                     }
                 }],
-                category: {
-                    type: String,
+                categories: [{
+                    type: Schema.Types.ObjectId,
+                    ref: 'category',
                     required: true,
-                },
+                }],
                 restaurant: {
                     type: Schema.Types.ObjectId,
                     ref: 'restaurant',

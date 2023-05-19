@@ -8,7 +8,7 @@ const RestaurantValidator = (data) => {
             province: Joi.string(),
             district: Joi.string(),
             commute: Joi.string()
-        }),
+        }).required(),
         location: Joi.object({
             coordinates: Joi.array().required()
         }),

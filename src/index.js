@@ -13,7 +13,7 @@ const dashboardRouter = require('./routes/dashboard');
 const productRouter = require('./routes/product');
 const mapRouter = require('./routes/map');
 const cartRouter = require('./routes/shoppingCart');
-
+const categoryRouter = require('./routes/category');
 const app = express();
 
 dotenv.config();
@@ -45,6 +45,9 @@ app.use('/api/map', mapRouter);
 
 //shopping cart api
 app.use('/api/cart', cartRouter);
+
+//category api
+app.use('/api/category', categoryRouter);
 
 //START SERVER
 app.listen(process.env.PORT || 3306, () => {
