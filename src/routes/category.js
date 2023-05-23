@@ -15,4 +15,6 @@ router.get('/:name', categoryController.getCategoryByName);
 
 router.post('/', categoryController.createCategory);
 
+router.get('/', categoryController.getAllProductsInCategory)
+
 module.exports = router;

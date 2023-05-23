@@ -14,6 +14,12 @@ router.post('/', validateMiddleware.createProduct, auth.verifyToken, auth.checkR
 //@access public
 router.get('/:id', productController.getProductById);
 
+//route GET product/
+//@desc Get all products of a restaurant
+//@access public
+router.get('/', productController.getAllProducts);
+
+
 //route PUT product/:id
 //@desc Update product
 //@access private
