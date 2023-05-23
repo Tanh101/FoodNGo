@@ -32,7 +32,21 @@ const productController = {
         }
 
     },
-
+    getAllProducts: async (req, res) => {
+        try {
+            const products = await Product.find();
+            return res.status(200).json({
+                success: true,
+                message: 'Get all products successfully',
+                products
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
     getProductById: async (req, res) => {
         try {
             const product = await Product.findById(req.params.id);
