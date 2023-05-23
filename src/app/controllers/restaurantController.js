@@ -3,37 +3,52 @@ const Restaurant = require('../models/Restaurant');
 const Product = require('../models/Product');
 const restaurantService = require('../../service/restaurantService');
 const Account = require('../models/Account');
+const Category = require('../models/Category');
 
 const restaurantController = {
     getProductsByRestaurantId: async (req, res) => {
         try {
-            const status = req.query.status;
+            const status = req.query.status || 'active';
+            let tmp = null;
             if (status) {
-                const products = await Product.find({ restaurant: req.user.userId, status: status });
-                if (!products) {
+                const restaurant = await Restaurant.findById(req.params.id);
+                if (restaurant) {
+                    const categories = await Product.distinct('categories', { restaurant: req.params.id, status: status });
+                    const productList = await Product.find({ restaurant: req.params.id, status: status });
+                    if (productList) {
+                        const resultPromises = categories.map(async category => {
+                            const categoryInfoPromise = Category.findById(category);
+                            const products = productList.filter(product => product.categories.includes(category));
+                            const categoryInfo = await categoryInfoPromise;
+                            return {
+                                category: categoryInfo,
+                                products: products
+                            };
+                        });
+
+                        const result = await Promise.all(resultPromises);
+
+                        return res.status(200).json({
+                            success: true,
+                            message: 'Get products successfully',
+                            result: result,
+                        });
+
+                    } else {
+                        return res.status(404).json({
+                            success: false,
+                            message: "Product not found",
+                            result
+                        })
+                    }
+                } else {
                     return res.status(404).json({
                         success: false,
-                        message: 'Products not found',
+                        message: 'Restaurant not found',
                     });
                 }
-                return res.status(200).json({
-                    success: true,
-                    message: 'Get products successfully',
-                    products,
-                });
             }
-            const products = await Product.find({ restaurant: req.params.id });
-            if (!products) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Products not found',
-                });
-            }
-            return res.status(200).json({
-                success: true,
-                message: 'Get products successfully',
-                products,
-            })
+
         } catch (error) {
             return res.status(500).json({
                 success: false,

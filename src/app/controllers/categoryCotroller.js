@@ -31,7 +31,7 @@ const categoryController = {
             const result = categories.map(category => {
                 const productsInCategory = products
                     .filter(product => product.categories.includes(category._id))
-                    .slice(startIndex, endIndex); // Apply pagination to products in category
+                    .slice(startIndex, endIndex); 
                 return {
                     ...category._doc,
                     products: productsInCategory

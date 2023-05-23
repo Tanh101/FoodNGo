@@ -64,6 +64,10 @@ const RetstaurantSchema = new mongoose.Schema({
         default: 'pending',
         enum: ['pending', 'online', 'busy', 'offline', 'deleted'],
     },
+    categories: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'category'
+    }],
     delete_at: {
         type: Date,
         default: null,
