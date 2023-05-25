@@ -27,7 +27,6 @@ const ProductSchema = new Schema({
     }],
     categories: [{
         type: Schema.Types.ObjectId,
-        ref: 'category',
         required: true,
     }],
     restaurant: {

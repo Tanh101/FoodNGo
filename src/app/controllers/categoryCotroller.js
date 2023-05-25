@@ -21,27 +21,27 @@ const categoryController = {
         try {
             const categories = await Category.find();
             const products = await Product.find();
-    
-            const limit = req.query.limit || 10; 
-            const currentPage = req.query.page || 1; 
-    
+
+            const limit = req.query.limit || 10;
+            const currentPage = req.query.page || 1;
+
             const startIndex = (currentPage - 1) * limit;
             const endIndex = startIndex + limit;
-    
+
             const result = categories.map(category => {
                 const productsInCategory = products
                     .filter(product => product.categories.includes(category._id))
-                    .slice(startIndex, endIndex); 
+                    .slice(startIndex, endIndex);
                 return {
                     ...category._doc,
                     products: productsInCategory
                 }
             });
-    
+
             const totalProductsCount = result.reduce((count, category) => count + category.products.length, 0);
-    
+
             const totalPages = Math.ceil(totalProductsCount / limit);
-    
+
             return res.status(200).json({
                 success: true,
                 message: 'Get all products in category successfully',
@@ -60,7 +60,7 @@ const categoryController = {
             });
         }
     },
-    
+
     createCategory: async (req, res) => {
         try {
             const { name } = req.body;
@@ -71,7 +71,7 @@ const categoryController = {
                     message: 'Category already exists'
                 });
             }
-            const newCategory = new Category({ name });
+            const newCategory = new Category({ name , restaurant: req.user.userId});
             await newCategory.save();
             return res.status(201).json({
                 success: true,
@@ -84,7 +84,30 @@ const categoryController = {
                 message: error.message
             });
         }
-    }
+    },
+    updateCategory: async (req, res) => {
+        try {
+          const { status } = req.body;
+          const result = await Category.updateMany({}, { status: status });
+          if (result.nModified === 0) {
+            return res.status(400).json({
+              success: false,
+              message: 'Category not found'
+            });
+          }
+          return res.status(200).json({
+            success: true,
+            message: 'Category updated successfully',
+            data: result
+          });
+        } catch (error) {
+          return res.status(500).json({
+            success: false,
+            message: error.message
+          });
+        }
+      }
+      
 
 }
 

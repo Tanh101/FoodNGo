@@ -5,6 +5,51 @@ const { AVERAGE_DELIVERY_SPPED, PREPARING_TIME } = require('../utils/constants')
 
 const restaurantService = {
 
+    checkOpeningHours: (open, close) => {
+        try {
+            const [openHours, openMinutes] = open.split(':');
+            const [closeHours, closeMinutes] = close.split(':'); 
+
+            const openTime = new Date();
+            openTime.setHours(openHours);
+            openTime.setMinutes(openMinutes);
+
+            const closeTime = new Date();
+            closeTime.setHours(closeHours);
+            closeTime.setMinutes(closeMinutes);
+
+            const currentTime = new Date();
+            if (currentTime >= openTime && currentTime < closeTime) {
+                return true;
+            }
+            return false;
+
+        } catch (error) {
+            return false;
+        }
+    },
+
+    updateOpeningStatus: async () => {
+        try {
+            const restaurants = await Restaurant.find();
+            restaurants.forEach(async (restaurant) => {
+                const { open, close } = restaurant.openingHours;
+                const isOpening = restaurantService.checkOpeningHours(open, close);
+                if (isOpening) {
+                    restaurant.status = 'open';
+                }
+                else {
+                    restaurant.status = 'close';
+                }
+                await restaurant.save();
+            });
+            return true;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    },
+
     getPagingData: async (req, res) => {
         try {
             const longitude = req.query.longitude;
@@ -27,7 +72,7 @@ const restaurantService = {
                 },
                 {
                     $match: {
-                        status: 'online'
+                        status: 'open'
                     }
                 }
             ]);
@@ -61,14 +106,14 @@ const restaurantService = {
                             coordinates
                         },
                         key: 'location',
-                        maxDistance: parseFloat(5000),
+                        maxDistance: parseFloat(20000),
                         distanceField: 'dist.calculated',
                         spherical: true
                     }
                 },
                 {
                     $match: {
-                        status: 'online'
+                        status: 'open',
                     }
                 },
                 {
@@ -79,9 +124,11 @@ const restaurantService = {
                 }
             ]);
 
-            const restaurantWithDeliveryTime = restaurants.map(restaurant => {
+            const restaurantsWithCategories = await Restaurant.populate(restaurants, { path: 'category' });
+            
+            const restaurantWithDeliveryTime = restaurantsWithCategories.map(restaurant => {
                 const distance = restaurant.dist.calculated;
-                const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : null;
+                const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
 
                 return {
                     ...restaurant,
@@ -98,7 +145,7 @@ const restaurantService = {
 
     createRestaurant: async (req, res, idAccount) => {
         try {
-            let { name, address, location, media, url, phone, description, rate } = req.body;
+            let { name, address, location, media, url, phone, description, rate, openingHours } = req.body;
             const restaurant = await Restaurant.findOne({ phone });
             if (restaurant) {
                 return res.status(400).json({
@@ -106,10 +153,14 @@ const restaurantService = {
                     message: 'Phone number already exists'
                 });
             }
+            const categories = req.body.categories.split(',');
+            const categoriesId = categories.map(category => mongoose.Types.ObjectId(category));
             const newRestaurant = new Restaurant({
                 name,
                 address,
                 location,
+                openingHours,
+                categories: categoriesId,
                 media,
                 url,
                 phone,

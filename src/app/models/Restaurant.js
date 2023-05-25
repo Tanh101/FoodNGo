@@ -8,7 +8,7 @@ const RetstaurantSchema = new mongoose.Schema({
         unique: true
     },
     address: {
-        stress: {
+        street: {
             type: String,
         },
         province: {
@@ -62,7 +62,17 @@ const RetstaurantSchema = new mongoose.Schema({
         type: String,
         required: true,
         default: 'pending',
-        enum: ['pending', 'online', 'busy', 'offline', 'deleted'],
+        enum: ['pending', 'open', 'busy', 'close', 'deleted'],
+    },
+    openingHours: {
+        type: {
+            open: {
+                type: String
+            },
+            close: {
+                type: String
+            } 
+        }
     },
     categories: [{
         type: mongoose.Schema.Types.ObjectId,
