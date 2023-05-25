@@ -114,7 +114,7 @@ const restaurantService = {
                 },
                 {
                     $match: {
-                        status: 'open',
+                        status: 'close',
                     }
                 },
                 {
@@ -122,12 +122,36 @@ const restaurantService = {
                 },
                 {
                     $limit: limit
+                },
+                {
+                    $lookup: {
+                        from: 'categories',
+                        let: { categoryIds: '$categories' },
+                        pipeline: [
+                            { $match: { $expr: { $in: ['$_id', '$$categoryIds'] } } }
+                        ],
+                        as: 'categoryInfo'
+                    }
+                },
+                {
+                    $group: {
+                        _id: '$_id',
+                        name: { $first: '$name' },
+                        location: { $first: '$location' },
+                        media: { $first: '$media' },
+                        url: { $first: '$url' },
+                        phone: { $first: '$phone' },
+                        description: { $first: '$description' },
+                        rate: { $first: '$rate' },
+                        status: { $first: '$status' },
+                        openingHours: { $first: '$openingHours' },
+                        dist: { $first: '$dist' },
+                        categoryInfo: { $push: '$categoryInfo' }
+                    }
                 }
             ]);
 
-            const restaurantsWithCategories = await Restaurant.populate(restaurants, { path: 'category' });
-
-            const restaurantWithDeliveryTime = restaurantsWithCategories.map(restaurant => {
+            const restaurantWithDeliveryTime = restaurants.map(restaurant => {
                 const distance = restaurant.dist.calculated;
                 const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
 
