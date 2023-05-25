@@ -7,20 +7,6 @@ const RetstaurantSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    address: {
-        street: {
-            type: String,
-        },
-        province: {
-            type: String
-        },
-        district: {
-            type: String
-        },
-        commute: {
-            type: String
-        },
-    },
     location: {
         type: {
             type: String,
