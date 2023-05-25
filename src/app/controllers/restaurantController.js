@@ -61,33 +61,41 @@ const restaurantController = {
         let restaurants = null;
         let pagination = null;
         try {
-            const longitude = req.query.longitude;
-            const latitude = req.query.latitude;
+            const isUpdated = await restaurantService.updateOpeningStatus();
+            if(isUpdated){
+                const longitude = req.query.longitude;
+                const latitude = req.query.latitude;
 
-            if (longitude && latitude) {
-                restaurants = await restaurantService.findNearbyRestaurants(req, res);
-                pagination = await restaurantService.getPagingData(req, res);
-                if (restaurants && pagination) {
+                if (longitude && latitude) {
+                    restaurants = await restaurantService.findNearbyRestaurants(req, res);
+                    pagination = await restaurantService.getPagingData(req, res);
+                    if (restaurants && pagination) {
+                        return res.json({
+                            success: true,
+                            message: 'Get all restaurants successfully',
+                            restaurants,
+                            pagination,
+                        });
+                    }
+                    else {
+                        return res.status(404).json({
+                            success: false,
+                            message: 'Restaurant not found',
+                        });
+                    }
+                }
+                else {
+                    restaurants = await Restaurant.find({ status: 'online' });
                     return res.json({
                         success: true,
                         message: 'Get all restaurants successfully',
-                        restaurants,
-                        pagination,
+                        restaurants
                     });
                 }
-                else {
-                    return res.status(404).json({
-                        success: false,
-                        message: 'Restaurant not found',
-                    });
-                }
-            }
-            else {
-                restaurants = await Restaurant.find({ status: 'online' });
-                return res.json({
-                    success: true,
-                    message: 'Get all restaurants successfully',
-                    restaurants
+            }else {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to update openingHours status of Restaurants'
                 });
             }
         } catch (error) {
@@ -163,12 +171,14 @@ const restaurantController = {
 
     updateRestaurantById: async (req, res) => {
         try {
-            const { name, address, location, media, url, phone, description, rate, status } = req.body;
+            const { name, address, location, openingHours, categories, media, url, phone, description, rate, status } = req.body;
             const restaurant = await Restaurant.
                 findByIdAndUpdate(req.params.id, {
                     name,
                     address,
                     location,
+                    openingHours,
+                    categories,
                     media,
                     url,
                     phone,
