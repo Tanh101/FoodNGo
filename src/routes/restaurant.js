@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const validateMiddleware = require('../middleware/validationMiddleware');
 const restaurantController = require('../app/controllers/restaurantController');
 const orderController = require('../app/controllers/orderController');
+const categoryController = require('../app/controllers/categoryCotroller');
 
 //route GET /restaurant/:id/products
 //@desc Get all products of a restaurant
@@ -31,11 +32,11 @@ router.put('/:id', auth.verifyToken,
 // @route UPDATE /restaurant/:id
 // @desc update restaurant status by id
 // @access private: current restaurant
-router.delete('/:id', auth.verifyToken,
-    auth.checkRole("restaurant"),
-    auth.checkPermission,
+router.delete('/:id',
     restaurantController.updateRestaurantStatus);
 
+
+//order 
 router.get('/:id/orders', auth.verifyToken,
     auth.checkRole("restaurant"),
     auth.checkPermission,
@@ -49,7 +50,11 @@ router.put('/orders/:orderId/refuse', auth.verifyToken,
     auth.checkRole("restaurant"),
     orderController.refuseOrder);
 
+// @route GET /restaurant/:id/categories
+// @desc Get all categories of a restaurant
+// @access public
 
+router.get('/:id/categories', categoryController.getAllProductsInCategory);
 
 
 module.exports = router;

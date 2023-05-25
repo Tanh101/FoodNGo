@@ -81,7 +81,7 @@ const dashboardController = {
             account.status = 'active';
             await account.save();
 
-            restaurant.status = 'online';
+            restaurant.status = 'open';
             await restaurant.save();
 
             return res.status(200).json({

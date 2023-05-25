@@ -68,7 +68,7 @@ const restaurantService = {
                 },
                 {
                     $match: {
-                        status: 'online'
+                        status: 'open'
                     }
                 },
                 {
@@ -98,7 +98,7 @@ const restaurantService = {
 
     createRestaurant: async (req, res, idAccount) => {
         try {
-            let { name, address, location, media, url, phone, description, rate } = req.body;
+            let { name, address, location, media, url, phone, description, rate, openingHours } = req.body;
             const restaurant = await Restaurant.findOne({ phone });
             if (restaurant) {
                 return res.status(400).json({
@@ -106,10 +106,14 @@ const restaurantService = {
                     message: 'Phone number already exists'
                 });
             }
+            const categories  = req.body.categories.split(',');
+            const categoriesId = categories.map(category => mongoose.Types.ObjectId(category));
             const newRestaurant = new Restaurant({
                 name,
                 address,
                 location,
+                openingHours,
+                categories: categoriesId,
                 media,
                 url,
                 phone,
