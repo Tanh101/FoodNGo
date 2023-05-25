@@ -3,15 +3,10 @@ const Joi = require('joi');
 const RestaurantValidator = (data) => {
     const restaurantSchema = Joi.object({
         name: Joi.string().required(),
-        address: Joi.object({
-            street: Joi.string(),
-            province: Joi.string(),
-            district: Joi.string(),
-            commute: Joi.string()
-        }).required(),
         location: Joi.object({
             coordinates: Joi.array().required()
         }),
+        openingHours: Joi.array().items(Joi.string()),
         media: Joi.array().items(Joi.object({
             type: Joi.string(),
             url: Joi.string()

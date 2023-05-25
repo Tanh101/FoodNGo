@@ -2,13 +2,14 @@
 const { Client } = require('@googlemaps/google-maps-services-js');
 const Restaurant = require('../app/models/Restaurant');
 const { AVERAGE_DELIVERY_SPPED, PREPARING_TIME } = require('../utils/constants');
+const Category = require('../app/models/Category');
 
 const restaurantService = {
 
     checkOpeningHours: (open, close) => {
         try {
             const [openHours, openMinutes] = open.split(':');
-            const [closeHours, closeMinutes] = close.split(':'); 
+            const [closeHours, closeMinutes] = close.split(':');
 
             const openTime = new Date();
             openTime.setHours(openHours);
@@ -65,7 +66,7 @@ const restaurantService = {
                             coordinates
                         },
                         key: 'location',
-                        maxDistance: parseFloat(5000),
+                        maxDistance: parseFloat(20000),
                         distanceField: 'dist.calculated',
                         spherical: true
                     }
@@ -125,7 +126,7 @@ const restaurantService = {
             ]);
 
             const restaurantsWithCategories = await Restaurant.populate(restaurants, { path: 'category' });
-            
+
             const restaurantWithDeliveryTime = restaurantsWithCategories.map(restaurant => {
                 const distance = restaurant.dist.calculated;
                 const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
@@ -145,7 +146,7 @@ const restaurantService = {
 
     createRestaurant: async (req, res, idAccount) => {
         try {
-            let { name, address, location, media, url, phone, description, rate, openingHours } = req.body;
+            let { name, address, location, media, url, phone, description, rate, openingHours, categories } = req.body;
             const restaurant = await Restaurant.findOne({ phone });
             if (restaurant) {
                 return res.status(400).json({
@@ -153,14 +154,21 @@ const restaurantService = {
                     message: 'Phone number already exists'
                 });
             }
-            const categories = req.body.categories.split(',');
-            const categoriesId = categories.map(category => mongoose.Types.ObjectId(category));
+            if (categories.length > 1) {
+                categories = categories.split(',');
+            }
+            const categoryIds = await Promise.all(
+                categories.map(async (category) => {
+                    const result = await Category.findOne({ name: category });
+                    return result ? result._id : null;
+                })
+            );
             const newRestaurant = new Restaurant({
                 name,
                 address,
                 location,
                 openingHours,
-                categories: categoriesId,
+                categories: categoryIds,
                 media,
                 url,
                 phone,
