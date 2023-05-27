@@ -11,16 +11,20 @@ const shoppingCartController = {
             if (cart) {
                 const product = await Product.findById(cart[0].product);
                 const restaurant = await Restaurant.findById(product.restaurant);
-                const result = cart.map(async (cartItem) => {
-                    const pro = await Product.findById(cartItem.product);
+                let total = 0;
+                let result = await Promise.all(cart.map(async (item) => {
+                    const pro = await Product.findById(item.product);
+                    total += pro.price * item.quantity;
                     return {
-                        cartItem,
+                        item,
                         pro
-                    }
-                });
+                    };
+                }));
+
                 return res.status(200).json({
                     success: true,
                     message: 'Cart fetched successfully',
+                    total,
                     restaurant,
                     result
                 });

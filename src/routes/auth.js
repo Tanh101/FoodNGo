@@ -9,7 +9,7 @@ const router = express.Router();
 //@route GET auth/refresh
 //@desc Refresh token
 //@access public
-router.get('/token', authController.refreshAccessToken);
+router.post('/token', authController.refreshAccessToken);
 
 //@route POST auth/register
 //@desc Register user
