@@ -4,7 +4,7 @@ const User = require('../app/models/User');
 const userService = {
     createUser: async (req, res, idAccount) => {
         try {
-            let {email, name,dob, gender, phone, avatar, location } = req.body;
+            let {email, name,dob, gender, phone, avatar, location, address } = req.body;
             let newUser = new User({
                 email,
                 name,
@@ -13,6 +13,7 @@ const userService = {
                 phone,
                 avatar,
                 location,
+                address,
                 account: idAccount,
             });
             await newUser.save();

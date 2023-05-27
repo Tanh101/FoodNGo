@@ -36,6 +36,9 @@ const UserSchema = new Schema({
             type: [Number],
         },
     },
+    address: {
+        type: Object
+    }
 });
 
 module.exports = mongoose.model('users', UserSchema);

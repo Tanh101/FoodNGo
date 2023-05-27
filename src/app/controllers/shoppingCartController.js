@@ -3,18 +3,26 @@ const Cart = require('../models/Cart');
 const Restaurant = require('../models/Restaurant');
 const Product = require('../models/Product');
 const shoppingCartController = {
-        getCart: async (req, res) => {
+    getCart: async (req, res) => {
         try {
             const userId = req.user.userId;
             const cart = await Cart.find({ user: userId });
+
             if (cart) {
                 const product = await Product.findById(cart[0].product);
                 const restaurant = await Restaurant.findById(product.restaurant);
+                const result = cart.map(async (cartItem) => {
+                    const pro = await Product.findById(cartItem.product);
+                    return {
+                        cartItem,
+                        pro
+                    }
+                });
                 return res.status(200).json({
                     success: true,
                     message: 'Cart fetched successfully',
                     restaurant,
-                    cart
+                    result
                 });
             }
             return res.status(200).json({
@@ -35,7 +43,8 @@ const shoppingCartController = {
     addToCart: async (req, res) => {
         try {
             const userId = req.user.userId;
-            const { productId, quantity } = req.body;
+            let { productId, quantity } = req.body;
+            quantity = parseInt(quantity);
             const cartUser = await Cart.findOne({ user: userId });
             if (cartUser) {
                 const product = await Cart.findOne({ user: userId, product: productId });
@@ -56,7 +65,7 @@ const shoppingCartController = {
                     console.log(restaurantId);
                     console.log(restaurant._id);
                     console.log(restaurant._id !== restaurantId);
-                    if(restaurant._id.toString() !== restaurantId.toString()){
+                    if (restaurant._id.toString() !== restaurantId.toString()) {
                         return res.status(400).json({
                             success: false,
                             message: 'You can not add products from different restaurants'
@@ -134,7 +143,8 @@ const shoppingCartController = {
     updateCart: async (req, res) => {
         try {
             const userId = req.user.userId;
-            const { productId, quantity } = req.body;
+            let { productId, quantity } = req.body;
+            quantity = parseInt(quantity);
             let cartUser = await Cart.findOne({ user: userId });
             if (cartUser) {
                 let productCart = await Cart.findOne({ user: userId, product: productId });

@@ -112,7 +112,7 @@ const authController = {
     refreshAccessToken: async (req, res) => {
         try {
             const refreshToken = req.body.token;
-            if (!refreshToken || !refreshTokens[refreshToken]) {
+            if (!refreshToken || !refreshTokens.hasOwnProperty(refreshToken)) {
                 return res.status(400).json({
                     success: false,
                     message: 'Invalid refresh token'
@@ -120,9 +120,10 @@ const authController = {
             }
             jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decode) => {
                 if (err) {
+                    console.log('verify');
                     return res.status(400).json({
                         success: false,
-                        message: 'Invalid refresh token'
+                        message: err.message
                     });
                 }
 
@@ -178,11 +179,11 @@ const authController = {
                     message: 'Account is pending'
                 });
             }
-            if(account.role === 'user' || account.role === 'admin')
+            if (account.role === 'user' || account.role === 'admin')
                 user = await User.findOne({ account: account });
-            else if(account.role === 'restaurant')
-                user = await Restaurant.findOne({account: account });
-            else if(account.role === 'shipper')
+            else if (account.role === 'restaurant')
+                user = await Restaurant.findOne({ account: account });
+            else if (account.role === 'shipper')
                 console.log('doing');
 
             const isValidPassword = await bcrypt.compare(req.body.password, account.password);
