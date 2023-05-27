@@ -18,6 +18,9 @@ const RetstaurantSchema = new mongoose.Schema({
             required: true
         }
     },
+    address: {
+        type: String
+    },
     media: [{
         type: {
             type: String,
