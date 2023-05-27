@@ -5,6 +5,12 @@ const cookieParser = require("cookie-parser");
 const db = require('./app/config/db/index');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
+const http = require('http');
+const socketIO = require('socket.io');
+const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
+
 
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
@@ -14,7 +20,6 @@ const productRouter = require('./routes/product');
 const mapRouter = require('./routes/map');
 const cartRouter = require('./routes/shoppingCart');
 const categoryRouter = require('./routes/category');
-const app = express();
 
 dotenv.config();
 
@@ -50,6 +55,14 @@ app.use('/api/cart', cartRouter);
 app.use('/api/category', categoryRouter);
 
 //START SERVER
-app.listen(process.env.PORT || 3306, () => {
+
+io.onconnection = (socket) => {
+  console.log('a user connected');
+  socket.on('disconnect', () => {
+    console.log('user disconnected');
+  });
+};
+
+server.listen(process.env.PORT || 3306, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });

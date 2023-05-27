@@ -112,12 +112,7 @@ const restaurantService = {
                         spherical: true
                     }
                 },
-                {
-                    $match: {
-                        status: 'open',
-                    }
-                },
-                {
+                    {
                     $skip: (page - 1) * limit
                 },
                 {
