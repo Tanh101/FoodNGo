@@ -1,14 +1,19 @@
 const express = require('express');
 const Cart = require('../models/Cart');
+const Restaurant = require('../models/Restaurant');
+const Product = require('../models/Product');
 const shoppingCartController = {
-    getCart: async (req, res) => {
+        getCart: async (req, res) => {
         try {
             const userId = req.user.userId;
-            const cart = await Cart.find({ user: userId }).populate('product').sort({ createdAt: 1 });
+            const cart = await Cart.find({ user: userId });
             if (cart) {
+                const product = await Product.findById(cart[0].product);
+                const restaurant = await Restaurant.findById(product.restaurant);
                 return res.status(200).json({
                     success: true,
                     message: 'Cart fetched successfully',
+                    restaurant,
                     cart
                 });
             }
@@ -33,7 +38,7 @@ const shoppingCartController = {
             const { productId, quantity } = req.body;
             const cartUser = await Cart.findOne({ user: userId });
             if (cartUser) {
-                const product = await Cart.findOne({user: userId,  product: productId });
+                const product = await Cart.findOne({ user: userId, product: productId });
                 if (product) {
                     cartUser.quantity += quantity;
                     await cartUser.save();
@@ -43,6 +48,20 @@ const shoppingCartController = {
                         cartUser
                     });
                 } else {
+                    const productFind = await Product.findById(productId);
+                    const restaurant = await Restaurant.findById(productFind.restaurant);
+                    const proId = cartUser.product;
+                    const pro = await Product.findById(proId);
+                    const restaurantId = pro.restaurant;
+                    console.log(restaurantId);
+                    console.log(restaurant._id);
+                    console.log(restaurant._id !== restaurantId);
+                    if(restaurant._id.toString() !== restaurantId.toString()){
+                        return res.status(400).json({
+                            success: false,
+                            message: 'You can not add products from different restaurants'
+                        });
+                    }
                     const cartProduct = new Cart({
                         user: userId,
                         product: productId,

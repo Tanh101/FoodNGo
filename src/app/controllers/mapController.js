@@ -5,7 +5,7 @@ const mapController = {
     search: async (req, res, next) => {
         try {
             const query = req.query.address;
-            if(!query) {
+            if (!query) {
                 return res.status(400).json({
                     success: false,
                     message: 'Missing query'
@@ -32,7 +32,7 @@ const mapController = {
     getGeoCode: async (req, res, next) => {
         try {
             const placeId = req.query.placeId;
-            if(!placeId) {
+            if (!placeId) {
                 return res.status(400).json({
                     success: false,
                     message: 'Missing placeId'
@@ -53,6 +53,28 @@ const mapController = {
 
         } catch (err) {
             next(err);
+        }
+    },
+    getAddressByLocation: async (req, res) => {
+        try {
+            const address =await mapService.getAddressFromLocation(req.query.longitude, req.query.latitude);
+            if (address) {
+                return res.status(200).json({
+                    success: true,
+                    message: "Get address successfully",
+                    address
+                });
+            }
+            return res.status(404).json({
+                success: false,
+                message: "Address Not Found!",
+                address
+            });
+        } catch (error) {
+            return res.status(404).json({
+                success: false,
+                message: error.message,
+            });
         }
     }
 

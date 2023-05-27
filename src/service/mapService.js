@@ -25,6 +25,17 @@ const mapService = {
             timeout: 1000,
         });
         return response.data;
+    },
+
+    getAddressFromLocation: async (longitude, latitude) => {
+        const response = await client.reverseGeocode({
+            params: {
+                latlng: `${latitude},${longitude}`,
+                key: process.env.GOOGLE_MAPS_API_KEY,
+            },
+            timeout: 1000,
+        });
+        return response.data;
     }
 }
 
