@@ -5,17 +5,10 @@ const UserValidator = (data) => {
         name: Joi.string().required(),
         dob: Joi.date().required(),
         gender: Joi.string().required(),
+        location: Joi.object().required(),
         phone: Joi.string().required(),
         avatar: Joi.string().default(null),
-        location: Joi.object({
-            coordinates: Joi.array().required()
-        }),
-        address: Joi.object({
-            street: Joi.string(),
-            province: Joi.string(),
-            district: Joi.string(),
-            commute: Joi.string()
-        })
+        address: Joi.object()
     });
     return userSchema.validate(data);
 }

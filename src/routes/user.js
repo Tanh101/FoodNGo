@@ -9,7 +9,7 @@ const router = express.Router();
 //@route GET /:id
 //@desc Get user by id
 //@access private
-router.get('/:id',
+router.get('/',
     auth.verifyToken,
     userController.getUserById
 );
@@ -18,10 +18,9 @@ router.get('/:id',
 //@route UPDATE /:id
 //@desc Update user by id
 //@access private
-router.put('/:id',
-    validateMiddleware.updateUser,
+router.put('/',
+    // validateMiddleware.updateUser,
     auth.verifyToken,
-    auth.checkPermission,
     userController.updateUserById
 );
 
