@@ -4,9 +4,10 @@ const Account = require('../models/Account');
 
 const userController = {
     getUserById: async (req, res) => {
-        const { id } = req.params;
+        const id = req.user.userId;
         try {
             const user = await User.findById(id);
+            console.log(user);
             const account = await Account.findById(user.account);
             const { password, ...accountWithoutPassword } = account._doc;
             if (user) {
@@ -34,7 +35,7 @@ const userController = {
 
 
     updateUserById: async (req, res) => {
-        const { id } = req.params;
+        const id = req.user.userId;
         const { name, dob, gender, phone, avatar, location, address } = req.body;
 
         try {
@@ -45,7 +46,7 @@ const userController = {
                     message: 'User not found'
                 });
             }
-            const updateUser = await User.findByIdAndUpdate(id, {
+            const updated = await User.findByIdAndUpdate(id, {
                 name: name,
                 dob: dob,
                 gender: gender,
@@ -58,7 +59,7 @@ const userController = {
             return res.status(200).json({
                 success: true,
                 message: 'Update user successfully',
-                user: updateUser
+                updated
             });
         } catch (error) {
             return res.status(500).json({
