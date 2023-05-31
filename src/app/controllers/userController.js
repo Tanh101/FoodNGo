@@ -1,16 +1,21 @@
 const exress = require('express');
 const User = require('../models/User');
+const Account = require('../models/Account');
 
 const userController = {
     getUserById: async (req, res) => {
         const { id } = req.params;
         try {
             const user = await User.findById(id);
+            const account = await Account.findById(user.account);
+            const { password, ...accountWithoutPassword } = account._doc;
             if (user) {
                 return res.status(200).json({
                     success: true,
                     message: 'Get user successfully',
-                    user: user
+                    user,
+                    accountWithoutPassword
+
                 });
             }
             else {
@@ -26,6 +31,7 @@ const userController = {
             });
         }
     },
+
 
     updateUserById: async (req, res) => {
         const { id } = req.params;

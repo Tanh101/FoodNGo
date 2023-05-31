@@ -11,9 +11,9 @@ const router = express.Router();
 //@access private
 router.get('/:id',
     auth.verifyToken,
-    auth.checkPermission,
     userController.getUserById
 );
+
 
 //@route UPDATE /:id
 //@desc Update user by id
@@ -24,6 +24,8 @@ router.put('/:id',
     auth.checkPermission,
     userController.updateUserById
 );
+
+//@router GET
 
 router.post('/order', auth.verifyToken, auth.checkRole("user"), orderController.createOrder)
 
