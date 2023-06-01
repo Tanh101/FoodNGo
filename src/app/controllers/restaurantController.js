@@ -173,7 +173,7 @@ const restaurantController = {
         try {
             const { name, address, location, openingHours, categories, media, url, phone, description, rate, status } = req.body;
             const restaurant = await Restaurant.
-                findByIdAndUpdate(req.params.id, {
+                findByIdAndUpdate(req.user.userId, {
                     name,
                     address,
                     location,
@@ -193,7 +193,7 @@ const restaurantController = {
                     message: 'Restaurant not found',
                 });
             }
-            return res.json({
+            return res.status(200).json({
                 success: true,
                 message: 'Update restaurant successfully',
                 restaurant,

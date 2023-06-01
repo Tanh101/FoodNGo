@@ -118,6 +118,43 @@ const dashboardController = {
             });
         }
     },
+
+    updateRestaurant: async (req, res) => {
+        try {
+            const { name, address, location, openingHours, categories, media, url, phone, description, rate, status } = req.body;
+            const restaurant = await Restaurant.
+                findByIdAndUpdate(req.user.userId, {
+                    name,
+                    address,
+                    location,
+                    openingHours,
+                    categories,
+                    media,
+                    url,
+                    phone,
+                    description,
+                    rate,
+                    status
+                }, { new: true });
+
+            if (!restaurant) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Restaurant not found',
+                });
+            }
+            return res.status(200).json({
+                success: true,
+                message: 'Update restaurant successfully',
+                restaurant,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
  
     getAllUsers: async (req, res) => {
         try {

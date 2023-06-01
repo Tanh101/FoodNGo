@@ -14,6 +14,12 @@ router.get('/restaurant', auth.verifyToken, auth.checkRole('admin'), dashboardCo
 // @access private: only admin
 router.put('/restaurant/:id', auth.verifyToken, auth.checkRole('admin'), dashboardController.approveRestaurant);
 
+
+//@route PUT /restaurant
+//@desc Update restaurant
+//@access private: only admin
+router.put('/restaurant', auth.verifyToken, auth.checkRole('admin'), dashboardController.updateRestaurant);
+
 // @route GET /restaurant/:id
 // @desc Get restaurant by id
 // @access private: only admin
