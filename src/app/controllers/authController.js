@@ -13,6 +13,76 @@ require('dotenv').config();
 const refreshTokens = {};
 
 const authController = {
+    userRegister: async (req, res) => {
+        try {
+            const { email, role, phone, } = req.body;
+            if (!email || !req.password || !role) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing email or password or role'
+                });
+            }
+            let account = await Account.findOne({ email });
+            if (account) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email already taken'
+                });
+            }
+            let isExitPhone = await User.findOne({ phone });
+            if (isExitPhone) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Phone already taken'
+                });
+            }
+            //All good
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+            let state = constants.ACCOUNT_STATUS_ACTIVE;
+            let newAccount = new Account({
+                email,
+                password: hashedPassword,
+                role,
+                status: state || constants.ACCOUNT_STATUS_ACTIVE,
+            });
+            newAccount = await newAccount.save();
+            let newUser = await userService.createUser(req, res, newAccount._id);
+            const { password, ...other } = newAccount._doc;
+            if (newUser && newAccount) {
+                return res.status(201).json({
+                    success: true,
+                    message: 'Register successfully',
+                    user: newUser,
+                    ...other,
+                });
+            }
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+    restaurantRegister: async (req, res) => {
+        try {
+            const { email, role, phone, } = req.body;
+            if (!email || !req.password || !role) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing email or password or role'
+                });
+            }
+        }
+        catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
     register: async (req, res) => {
         let newUser = null;
         let newRestaurant = null;

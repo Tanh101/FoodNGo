@@ -16,6 +16,7 @@ const userService = {
                 address,
                 account: idAccount,
             });
+            if(email)
             await newUser.save();
             return newUser;
         } catch (error) {

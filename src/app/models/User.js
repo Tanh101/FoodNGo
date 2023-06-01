@@ -8,7 +8,6 @@ const UserSchema = new Schema({
     },
     dob: {
         type: Date,
-        required: true
     },
     gender: {
         type: String,
