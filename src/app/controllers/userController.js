@@ -7,7 +7,6 @@ const userController = {
         const id = req.user.userId;
         try {
             const user = await User.findById(id);
-            console.log(user);
             const account = await Account.findById(user.account);
             const { password, ...accountWithoutPassword } = account._doc;
             if (user) {
