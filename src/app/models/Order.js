@@ -7,9 +7,13 @@ const OrderSchema = new Schema({
         ref: 'user',
         required: true
     },
+    adress: {
+        type: Object,
+        required: true
+    },
     shipper: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
+        ref: 'shipper',
         default: null
     },
     paymentMethod: {
@@ -28,6 +32,11 @@ const OrderSchema = new Schema({
         required: true,
         default: 'unpaid',
         enum: ['unpaid', 'paid']
+    },
+    restaurant: {
+        type: Schema.Types.ObjectId,
+        ref: 'restaurant',
+        required: true
     },
     orderItems: [
         {
@@ -78,6 +87,9 @@ const OrderSchema = new Schema({
             }
         }
     ],
+    deliveryFee: {
+        type: Number,
+    },
     total: {
         type: Number,
         required: true

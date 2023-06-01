@@ -14,7 +14,7 @@ router.post('/token', authController.refreshAccessToken);
 //@route POST auth/register
 //@desc Register user
 //@access public
-router.post('/register', authController.register);
+router.post('/register',  authController.register);
 
 //@route POST auth/login
 //@desc Login user

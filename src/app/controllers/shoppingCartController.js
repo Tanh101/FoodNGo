@@ -5,13 +5,14 @@ const Product = require('../models/Product');
 const shoppingCartController = {
     getCart: async (req, res) => {
         try {
+            let result = [];
             const userId = req.user.userId;
             const cart = await Cart.find({ user: userId });
             if (cart.length > 0) {
                 const product = await Product.findById(cart[0].product);
                 const restaurant = await Restaurant.findById(product.restaurant);
                 let total = 0;
-                let result = await Promise.all(cart.map(async (item) => {
+                result = await Promise.all(cart.map(async (item) => {
                     const pro = await Product.findById(item.product);
                     total += pro.price * item.quantity;
                     return {
@@ -31,7 +32,7 @@ const shoppingCartController = {
             return res.status(200).json({
                 success: true,
                 message: 'Cart fetched successfully',
-                cart: []
+                result
             });
 
         } catch (error) {
