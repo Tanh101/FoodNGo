@@ -24,9 +24,9 @@ router.get('/:id', restaurantController.getRestaurantById);
 // @route UPDATE /restaurant/:id
 // @desc Update restaurant by id
 // @access private: only current restaurant
-router.put('/:id', auth.verifyToken,
+router.put('/', auth.verifyToken,
     // validateMiddleware.updateRestaurant,
-    auth.checkAdminOrCurrentRestaurant,
+    auth.checkRole("restaurant"),
     restaurantController.updateRestaurantById);
 
 // @route UPDATE /restaurant/:id

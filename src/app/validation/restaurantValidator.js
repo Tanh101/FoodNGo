@@ -11,6 +11,7 @@ const RestaurantValidator = (data) => {
             type: Joi.string(),
             url: Joi.string()
         })),
+        address: Joi.string().required(),
         url: Joi.string().required(),
         phone: Joi.string().required(),
         description: Joi.string(),

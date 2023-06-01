@@ -7,8 +7,7 @@ const shoppingCartController = {
         try {
             const userId = req.user.userId;
             const cart = await Cart.find({ user: userId });
-
-            if (cart) {
+            if (cart.length > 0) {
                 const product = await Product.findById(cart[0].product);
                 const restaurant = await Restaurant.findById(product.restaurant);
                 let total = 0;
@@ -48,6 +47,12 @@ const shoppingCartController = {
         try {
             const userId = req.user.userId;
             let { productId, quantity } = req.body;
+            if(!quantity || !productId || quantity < 1){
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing required fields'
+                });
+            }
             quantity = parseInt(quantity);
             const cartUser = await Cart.findOne({ user: userId });
             if (cartUser) {
@@ -72,7 +77,7 @@ const shoppingCartController = {
                     if (restaurant._id.toString() !== restaurantId.toString()) {
                         return res.status(400).json({
                             success: false,
-                            message: 'You can not add products from different restaurants'
+                            message: 'Products of different restaurants'
                         });
                     }
                     const cartProduct = new Cart({
