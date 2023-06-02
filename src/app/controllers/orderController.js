@@ -1,25 +1,126 @@
 const express = require('express');
+const geolib = require('geolib');
 const Order = require('../models/Order');
-const { ORDER_STATUSSTATUS_PREPARING, ORDER_STATUS_DELIVERING, ORDER_STATUS_DELIVERED, ORDER_STATUS_CANCELLED, ORDER_STATUS_UNAVAILABLE, ORDER_STATUS_ORDERED } = require('../../utils/constants');
+const {
+    DELIVERY_BASE_FEE,
+    DELIVERY_FEE_PER_KM,
+    ORDER_STATUSSTATUS_PREPARING,
+    ORDER_STATUS_DELIVERING,
+    ORDER_STATUS_DELIVERED,
+    ORDER_STATUS_UNAVAILABLE,
+    ORDER_STATUS_ORDERED,
+    DELIVERY_FEE_PER_KM_GREAT_THAN_FIVE,
+    AVERAGE_DELIVERY_SPPED,
+    PREPARING_TIME
+} = require('../../utils/constants');
+const Product = require('../models/Product');
+const Restaurant = require('../models/Restaurant');
+const Cart = require('../models/Cart');
+
 const orderController = {
+    getInforCheckout: async (req, res) => {
+        try {
+            let result = [];
+            let totalProduct = 0;
+            const userId = req.user.userId;
+            const { latitude, longitude } = req.query;
+            const cart = await Cart.find({ user: userId });
+            if (cart.length > 0) {
+                const product = await Product.findById(cart[0].product);
+                const restaurant = await Restaurant.findById(product.restaurant);
+                if (!restaurant) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Restaurant not found'
+                    });
+                }
+                result = await Promise.all(cart.map(async (item) => {
+                    const pro = await Product.findById(item.product);
+                    totalProduct += pro.price * item.quantity;
+                    const quantity = item.quantity;
+                    return {
+                        pro,
+                        quantity,
+                        totalPrice: pro.price * quantity
+                    };
+                }));
+                const restaurantCoordinates = {
+                    latitude: parseFloat(restaurant.location.coordinates[1]),
+                    longitude: parseFloat(restaurant.location.coordinates[0])
+                };
+                const userCoordinates = {
+                    latitude: parseFloat(latitude),
+                    longitude: parseFloat(longitude)
+                };
+                let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
+                distance = distance.toFixed(2);
+                let deliveryFee = DELIVERY_BASE_FEE;
+                if (distance > 5.0) {
+                    deliveryFee += DELIVERY_FEE_PER_KM_GREAT_THAN_FIVE;
+                } else {
+                    deliveryFee += distance * DELIVERY_FEE_PER_KM;
+                }
+                let deliveryTime = distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME;
+                let total = totalProduct + deliveryFee;
+
+                return res.status(200).json({
+                    success: true,
+                    message: 'Cart fetched successfully',
+                    restaurant,
+                    result,
+                    distance,
+                    deliveryFee,
+                    deliveryTime,
+                    totalProductPrice: totalProduct,
+                    total
+                });
+            }
+            return res.status(200).json({
+                success: false,
+                message: 'Cart is empty',
+                result
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+
+        }
+    },
     createOrder: async (req, res) => {
         const userId = req.user.userId;
         const {
-            productId, quantity, restaurantId,
-            address, location, paymentMethod, note
+            items, restaurantId,
+            address, location, paymentMethod,
+            note, total, deliveryFee, deliveryTime, distance
         } = req.body;
-
-        const orderItems = [{  
-            product: productId,
-            quantity: quantity
-        }];
-        
+        const orderItems = await Promise.all(items.map(async (item) => {
+            const product = await Product.findById(item.product);
+            const subtotal = item.quantity * product.price;
+            return {
+                product: product,
+                quantity: item.quantity,
+            };
+        }));
+        const restaurant = await Restaurant.findById(restaurantId);
+        if (!restaurant) {
+            return res.status(404).json({
+                success: false,
+                message: 'Restaurant not found'
+            });
+        }
         const order = new Order({
             user: userId,
             address,
             paymentMethod,
+            restaurant: restaurantId,
             orderItems,
+            deliveryFee,
+            deliveryTime,
             total,
+            distance,
             note
         });
         await order.save();
@@ -27,7 +128,8 @@ const orderController = {
             res.status(200).json({
                 success: true,
                 message: 'Order created successfully',
-                order: order
+                order: order,
+                distance
             });
         } else {
             res.status(400).json({
