@@ -1,9 +1,11 @@
 const express = require('express');
+const geolib = require('geolib');
 const Restaurant = require('../models/Restaurant');
 const Product = require('../models/Product');
 const restaurantService = require('../../service/restaurantService');
 const Account = require('../models/Account');
 const Category = require('../models/Category');
+const { ACCOUNT_STATUS_PENDING, AVERAGE_DELIVERY_SPPED, PREPARING_TIME } = require('../../utils/constants');
 
 const restaurantController = {
     getProductsByRestaurantId: async (req, res) => {
@@ -62,7 +64,7 @@ const restaurantController = {
         let pagination = null;
         try {
             const isUpdated = await restaurantService.updateOpeningStatus();
-            if(isUpdated){
+            if (isUpdated) {
                 const longitude = req.query.longitude;
                 const latitude = req.query.latitude;
 
@@ -92,7 +94,7 @@ const restaurantController = {
                         restaurants
                     });
                 }
-            }else {
+            } else {
                 return res.status(500).json({
                     success: false,
                     message: 'Failed to update openingHours status of Restaurants'
@@ -108,24 +110,40 @@ const restaurantController = {
 
     getRestaurantById: async (req, res) => {
         try {
-            const restaurant = await Restaurant.findById(req.params.id);
-            if (!restaurant) {
+            const { longitude, latitude } = req.query;
+            const targetCoordinate = {
+                longitude: parseFloat(longitude),
+                latitude: parseFloat(latitude)
+            };
+            if (!longitude || !latitude) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid longitude or latitude',
+                });
+            }
+            const restaurant = await Restaurant.populate(await Restaurant.findById(req.params.id), { path: 'categories' });
+            const restaurantCoordinate = {
+                longitude: parseFloat(restaurant.location.coordinates[0]),
+                latitude: parseFloat(restaurant.location.coordinates[1])
+            };
+            if (!restaurant || restaurant.status === ACCOUNT_STATUS_PENDING) {
                 return res.status(404).json({
                     success: false,
                     message: 'Restaurant not found',
                 });
             }
-            if (restaurant.status === 'pending' || restaurant.status === 'deleted') {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Restaurant not found',
-                });
-            }
-
+            let distance = geolib.getDistance(restaurantCoordinate, targetCoordinate);
+            distance = distance.toFixed(2);
+            const deliveryTime = distance ? (distance * 60 /
+                (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
             return res.json({
                 success: true,
                 message: 'Get restaurant successfully',
-                restaurant,
+                restaurant: {
+                    ...restaurant._doc,
+                    distance,
+                    deliveryTime
+                }
             });
         } catch (error) {
             return res.status(500).json({
