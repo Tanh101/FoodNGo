@@ -12,7 +12,7 @@ const OrderSchema = new Schema({
         ref: 'shipper',
         default: null
     },
-    adress: {
+    address: {
         type: Object,
         required: true
     },
@@ -88,6 +88,9 @@ const OrderSchema = new Schema({
         }
     ],
     deliveryFee: {
+        type: Number,
+    },
+    deliveryTime: {
         type: Number,
     },
     total: {
