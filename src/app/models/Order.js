@@ -7,14 +7,14 @@ const OrderSchema = new Schema({
         ref: 'user',
         required: true
     },
-    adress: {
-        type: Object,
-        required: true
-    },
     shipper: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'shipper',
         default: null
+    },
+    adress: {
+        type: Object,
+        required: true
     },
     paymentMethod: {
         type: String,

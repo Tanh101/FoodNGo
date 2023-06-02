@@ -4,9 +4,19 @@ const { ORDER_STATUSSTATUS_PREPARING, ORDER_STATUS_DELIVERING, ORDER_STATUS_DELI
 const orderController = {
     createOrder: async (req, res) => {
         const userId = req.user.userId;
-        const { paymentMethod, orderItems, total, note } = req.body;
+        const {
+            productId, quantity, restaurantId,
+            address, location, paymentMethod, note
+        } = req.body;
+
+        const orderItems = [{  
+            product: productId,
+            quantity: quantity
+        }];
+        
         const order = new Order({
             user: userId,
+            address,
             paymentMethod,
             orderItems,
             total,
