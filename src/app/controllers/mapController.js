@@ -106,6 +106,7 @@ const mapController = {
                 let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
                 distance = parseFloat(distance.toFixed(2));
                 let deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM / 1000;
+                deliveryFee = Math.ceil(deliveryFee / 1000) * 1000
                 let deliveryTime = distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME;
                 return res.status(200).json({
                     success: true,
