@@ -11,12 +11,15 @@ const router = express.Router();
 //@access public
 router.post('/token', authController.refreshAccessToken);
 
-//@route POST auth/register
+//@route POST auth/register/user
 //@desc Register user
 //@access public
-router.post('/register',  authController.register);
+router.post('/register/user', validateMiddleware.signupUser ,authController.userRegister);
 
-router.post('/user/register', validateMiddleware.signupUser ,authController.userRegister);
+//@route POST auth/register/restaurant
+//@desc Register restaurant
+//@access public
+router.post('/register/restaurant', validateMiddleware.signupRestaurant, authController.restaurantRegister);
 
 //@route POST auth/login
 //@desc Login user

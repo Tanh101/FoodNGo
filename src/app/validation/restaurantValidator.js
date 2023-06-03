@@ -2,11 +2,14 @@ const Joi = require('joi');
 
 const RestaurantValidator = (data) => {
     const restaurantSchema = Joi.object({
+        email: Joi.string().email().required(),
+        password: Joi.string().required(),
         name: Joi.string().required(),
         location: Joi.object({
+            type: Joi.string().required(),
             coordinates: Joi.array().required()
-        }),
-        openingHours: Joi.array().items(Joi.string()),
+        }).required(),
+        openingHours: Joi.object().required(),
         media: Joi.array().items(Joi.object({
             type: Joi.string(),
             url: Joi.string()
@@ -17,7 +20,7 @@ const RestaurantValidator = (data) => {
         description: Joi.string(),
         rate: Joi.number().required(),
         status: Joi.string().required(),
-        delete_at: Joi.date()
+        categories: Joi.array(),
     });
     return restaurantSchema.validate(data);
 }

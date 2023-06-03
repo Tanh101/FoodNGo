@@ -36,7 +36,7 @@ const authController = {
                     message: 'Phone already taken'
                 });
             }
-            if(!constants.isPhoneNumber(phone)){
+            if (!constants.isPhoneNumber(phone)) {
                 return res.status(400).json({
                     success: false,
                     message: 'Phone number is not valid'
@@ -74,11 +74,70 @@ const authController = {
     },
     restaurantRegister: async (req, res) => {
         try {
-            const { email, role, phone, } = req.body;
-            if (!email || !req.password || !role) {
+            let role = 'restaurant';
+            const { email, phone , name} = req.body;
+            const isExitName = await Restaurant.findOne({ name });
+            const isExitsUrl = await Restaurant.findOne({ url: req.body.url });
+            if(isExitsUrl){
                 return res.status(400).json({
                     success: false,
-                    message: 'Missing email or password or role'
+                    message: 'Url already taken'
+                });
+            }
+            
+            if(isExitName){
+                return res.status(400).json({
+                    success: false,
+                    message: 'Name already taken'
+                });
+            }
+
+            if (!email || !req.body.password) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing email or password'
+                });
+            }
+            let account = await Account.findOne({ email });
+            if (account) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email already taken'
+                });
+            }
+            let isExitPhone = await User.findOne({ phone });
+            if (isExitPhone) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Phone already taken'
+                });
+            }
+            if (!constants.isPhoneNumber(phone)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Phone number is not valid'
+                });
+            }
+            let state = constants.ACCOUNT_STATUS_PENDING;
+
+            //All good
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(req.body.password, salt);
+            let newAccount = new Account({
+                email,
+                password: hashedPassword,
+                role,
+                status: state || constants.ACCOUNT_STATUS_ACTIVE,
+            });
+            newAccount = await newAccount.save();
+            const { password, ...other } = newAccount._doc;
+            let newRestaurant = await restaurantService.createRestaurant(req, res, newAccount._id);
+            if (newRestaurant && newAccount) {
+                return res.status(201).json({
+                    success: true,
+                    message: 'Register successfully',
+                    restaurant: newRestaurant,
+                    ...other,
                 });
             }
         }
