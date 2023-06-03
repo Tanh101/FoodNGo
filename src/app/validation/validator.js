@@ -6,7 +6,6 @@ const validator = (schema) => (payload) =>
 const signupSchema = Joi.object({
         email: Joi.string().min(6).required().email(),
         password: Joi.string().min(6).required(),
-        role: Joi.string(),
         name: Joi.string().required(),
         dob: Joi.date().required(),
         gender: Joi.string().required(),
