@@ -115,9 +115,11 @@ const mapController = {
                 return res.status(200).json({
                     success: true,
                     message: 'Get distance successfully',
-                    distance,
-                    deliveryFee,
-                    deliveryTime
+                    delivery: {
+                        distance,
+                        deliveryFee,
+                        deliveryTime
+                    }
                 });
             } else {
                 return res.status(404).json({
