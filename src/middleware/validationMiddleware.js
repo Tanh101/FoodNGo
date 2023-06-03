@@ -4,7 +4,7 @@ const {validateSignup} = require('../app/validation/validator');
 const { ProductValidator } = require('../app/validation/productValidator');
 
 const validateMiddleware = {
-    signup: (req, res, next) => {
+    signupUser: (req, res, next) => {
         const { error } = validateSignup(req.body);
         if (error) {
             return res.status(400).json({

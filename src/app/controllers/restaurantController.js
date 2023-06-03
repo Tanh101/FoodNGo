@@ -124,7 +124,7 @@ const restaurantController = {
             }
             const restaurant = await Restaurant.findById(req.params.id);
             const categories = await Product.distinct('categories', { restaurant: req.params.id });
-            const productList = await Product.find({ restaurant: req.params.id});
+            const productList = await Product.find({ restaurant: req.params.id });
             if (productList) {
                 const resultPromises = categories.map(async category => {
                     const categoryInfoPromise = Category.findById(category);
@@ -174,7 +174,7 @@ const restaurantController = {
     updateRestaurantStatus: async (req, res) => {
         try {
             const status = req.body.status;
-            if (status !== 'offline' || status !== 'online' || status !== 'deleted') {
+            if (status || status !== 'open' || status !== 'close' || status !== 'deleted') {
                 return res.status(400).json({
                     success: false,
                     message: 'Invalid status',
@@ -192,7 +192,7 @@ const restaurantController = {
             await restaurant.save();
             return res.json({
                 success: true,
-                message: 'Delete restaurant successfully',
+                message: 'Update restaurant status successfully',
                 restaurant,
             });
         } catch (error) {
@@ -201,7 +201,6 @@ const restaurantController = {
                 message: error.message
             });
         }
-        //update status
     },
 
     updateRestaurantById: async (req, res) => {
@@ -210,16 +209,16 @@ const restaurantController = {
             const restaurant = await Restaurant.
                 findByIdAndUpdate(req.user.userId, {
                     name,
-                    address,
                     location,
-                    openingHours,
-                    categories,
+                    address,
                     media,
                     url,
                     phone,
                     description,
                     rate,
-                    status
+                    status,
+                    openingHours,
+                    categories
                 }, { new: true });
 
             if (!restaurant) {

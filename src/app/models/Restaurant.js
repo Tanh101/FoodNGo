@@ -51,7 +51,7 @@ const RetstaurantSchema = new mongoose.Schema({
         type: String,
         required: true,
         default: 'pending',
-        enum: ['pending', 'open', 'busy', 'close', 'deleted'],
+        enum: ['pending', 'open', 'close', 'deleted'],
     },
     openingHours: {
         type: {
