@@ -54,24 +54,57 @@ const restaurantService = {
     getPagingData: async (req, res) => {
         try {
             const longitude = req.query.longitude;
+            const category = req.query.category;
             const latitude = req.query.latitude;
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 9;
             const coordinates = [longitude, latitude].map(parseFloat);
-            const allRestaurants = await Restaurant.aggregate([
-                {
-                    $geoNear: {
-                        near: {
-                            type: 'Point',
-                            coordinates
-                        },
-                        key: 'location',
-                        maxDistance: parseFloat(20000),
-                        distanceField: 'dist.calculated',
-                        spherical: true
+
+            let allRestaurants = null;
+            if (category) {
+                allRestaurants = await Restaurant.aggregate([
+                    {
+                        $geoNear: {
+                            near: {
+                                type: 'Point',
+                                coordinates
+                            },
+                            key: 'location',
+                            maxDistance: parseFloat(20000),
+                            distanceField: 'dist.calculated',
+                            spherical: true
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'categories',
+                            localField: 'categories',
+                            foreignField: '_id',
+                            as: 'categories'
+                        }
+                    },
+                    {
+                        $match: {
+                            'categories.name': category
+                        }
                     }
-                }
-            ]);
+                ]);
+            } else {
+                allRestaurants = await Restaurant.aggregate([
+                    {
+                        $geoNear: {
+                            near: {
+                                type: 'Point',
+                                coordinates
+                            },
+                            key: 'location',
+                            maxDistance: parseFloat(20000),
+                            distanceField: 'dist.calculated',
+                            spherical: true
+                        }
+                    }
+                ]);
+            }
 
             const totalPage = Math.ceil(allRestaurants.length / limit);
             const totalResult = allRestaurants.length;
@@ -94,27 +127,63 @@ const restaurantService = {
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 9;
             const coordinates = [longitude, latitude].map(parseFloat);
-
-            const restaurants = await Restaurant.aggregate([
-                {
-                    $geoNear: {
-                        near: {
-                            type: 'Point',
-                            coordinates
-                        },
-                        key: 'location',
-                        maxDistance: parseFloat(20000),
-                        distanceField: 'dist.calculated',
-                        spherical: true
+            let restaurants = null;
+            if (category) {
+                restaurants = await Restaurant.aggregate([
+                    {
+                        $geoNear: {
+                            near: {
+                                type: 'Point',
+                                coordinates
+                            },
+                            key: 'location',
+                            maxDistance: parseFloat(20000),
+                            distanceField: 'dist.calculated',
+                            spherical: true
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'categories',
+                            localField: 'categories',
+                            foreignField: '_id',
+                            as: 'categories'
+                        }
+                    },
+                    {
+                        $match: {
+                            'categories.name': category
+                        }
+                    },
+                    {
+                        $skip: (page - 1) * limit
+                    },
+                    {
+                        $limit: limit
                     }
-                },
-                {
-                    $skip: (page - 1) * limit
-                },
-                {
-                    $limit: limit
-                }
-            ]);
+                ]);
+            } else {
+                restaurants = await Restaurant.aggregate([
+                    {
+                        $geoNear: {
+                            near: {
+                                type: 'Point',
+                                coordinates
+                            },
+                            key: 'location',
+                            maxDistance: parseFloat(20000),
+                            distanceField: 'dist.calculated',
+                            spherical: true
+                        }
+                    },
+                    {
+                        $skip: (page - 1) * limit
+                    },
+                    {
+                        $limit: limit
+                    }
+                ]);
+            }
 
             const restaurantWithDeliveryTime = restaurants.map(restaurant => {
                 const distance = restaurant.dist.calculated;
