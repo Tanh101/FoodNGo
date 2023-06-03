@@ -55,12 +55,7 @@ const orderController = {
                 };
                 let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
                 distance = parseFloat(distance.toFixed(2));
-                let deliveryFee = DELIVERY_BASE_FEE;
-                if (distance > 5.0) {
-                    deliveryFee += DELIVERY_FEE_PER_KM_GREAT_THAN_FIVE;
-                } else {
-                    deliveryFee += distance * DELIVERY_FEE_PER_KM;
-                }
+                let deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM;
                 let deliveryTime = distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME;
                 let total = totalProduct + deliveryFee;
 
