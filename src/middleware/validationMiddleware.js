@@ -1,7 +1,7 @@
-const { RestaurantValidator } = require('../app/validation/restaurantValidator');
 const { UserValidator } = require('../app/validation/userValidator');
 const {validateSignup} = require('../app/validation/validator');
 const { ProductValidator } = require('../app/validation/productValidator');
+const RestaurantValidator = require('../app/validation/restaurantValidator');
 
 const validateMiddleware = {
     signupUser: (req, res, next) => {
@@ -26,6 +26,17 @@ const validateMiddleware = {
     }, 
 
     updateRestaurant: (req, res, next) => {
+        const { error } = RestaurantValidator(req.body);
+        if (error) {
+            return res.status(400).json({
+                success: false,
+                message: error.details[0].message
+            });
+        }
+        next();
+    },
+
+    signupRestaurant: (req, res, next) => {
         const { error } = RestaurantValidator(req.body);
         if (error) {
             return res.status(400).json({
