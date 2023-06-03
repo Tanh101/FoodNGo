@@ -68,9 +68,11 @@ const orderController = {
                     message: 'Cart fetched successfully',
                     restaurant,
                     result,
-                    distance,
-                    deliveryFee,
-                    deliveryTime,
+                    delivery: {
+                        distance,
+                        deliveryFee,
+                        deliveryTime
+                    },
                     totalProductPrice: totalProduct,
                     total
                 });
@@ -93,12 +95,11 @@ const orderController = {
         const userId = req.user.userId;
         const {
             items, restaurantId,
-            address, location, paymentMethod,
+            address, paymentMethod,
             note, total, deliveryFee, deliveryTime, distance
         } = req.body;
         const orderItems = await Promise.all(items.map(async (item) => {
             const product = await Product.findById(item.product);
-            const subtotal = item.quantity * product.price;
             return {
                 product: product,
                 quantity: item.quantity,
@@ -118,9 +119,9 @@ const orderController = {
             restaurant: restaurantId,
             orderItems,
             deliveryFee,
+            distance,
             deliveryTime,
             total,
-            distance,
             note
         });
         await order.save();
@@ -129,7 +130,11 @@ const orderController = {
                 success: true,
                 message: 'Order created successfully',
                 order: order,
-                distance
+                delivery: {
+                    distance,
+                    deliveryFee,
+                    deliveryTime
+                }
             });
         } else {
             res.status(400).json({

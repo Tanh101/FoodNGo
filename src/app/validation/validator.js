@@ -11,16 +11,11 @@ const signupSchema = Joi.object({
         dob: Joi.date().required(),
         gender: Joi.string().required(),
         phone: Joi.string().required(),
-        avatar: Joi.string().default(null),
+        avatar: Joi.string(),
         location: Joi.object({
-        coordinates: Joi.array().required()
-        }),
-        address: Joi.object({
-            street: Joi.string(),
-            province: Joi.string(),
-            district: Joi.string(),
-            commute: Joi.string()
-        })
+        coordinates: Joi.array().items(Joi.number()).required(),
+        }).required(),
+        address: Joi.object().required(),
 });
 
 exports.validateSignup = validator(signupSchema);

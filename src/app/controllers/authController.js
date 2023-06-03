@@ -16,7 +16,7 @@ const authController = {
     userRegister: async (req, res) => {
         try {
             const { email, role, phone, } = req.body;
-            if (!email || !req.password || !role) {
+            if (!email || !req.body.password || !role) {
                 return res.status(400).json({
                     success: false,
                     message: 'Missing email or password or role'
@@ -36,6 +36,13 @@ const authController = {
                     message: 'Phone already taken'
                 });
             }
+            if(!constants.isPhoneNumber(phone)){
+                return res.status(400).json({
+                    success: false,
+                    message: 'Phone number is not valid'
+                });
+            }
+
             //All good
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(req.body.password, salt);
