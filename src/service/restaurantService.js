@@ -56,7 +56,7 @@ const restaurantService = {
             const longitude = req.query.longitude;
             const latitude = req.query.latitude;
             const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 18;
+            const limit = parseInt(req.query.limit) || 9;
             const coordinates = [longitude, latitude].map(parseFloat);
             const allRestaurants = await Restaurant.aggregate([
                 {
@@ -69,11 +69,6 @@ const restaurantService = {
                         maxDistance: parseFloat(20000),
                         distanceField: 'dist.calculated',
                         spherical: true
-                    }
-                },
-                {
-                    $match: {
-                        status: 'open'
                     }
                 }
             ]);
@@ -97,7 +92,7 @@ const restaurantService = {
             const longitude = req.query.longitude;
             const latitude = req.query.latitude;
             const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 18;
+            const limit = parseInt(req.query.limit) || 9;
             const coordinates = [longitude, latitude].map(parseFloat);
 
             const restaurants = await Restaurant.aggregate([
@@ -118,29 +113,10 @@ const restaurantService = {
                 },
                 {
                     $limit: limit
-                },
-                {
-                    $match: {
-                        $or: [
-                            {
-                                categories: {
-                                    $in: [category]
-                                }
-                            },
-                            {
-                                categories: {
-                                    $exists: false
-                                }
-                            }
-                        ]
-
-                    }
                 }
             ]);
 
-            const restaurantsWithCategories = await Restaurant.populate(restaurants, { path: 'category' });
-
-            const restaurantWithDeliveryTime = restaurantsWithCategories.map(restaurant => {
+            const restaurantWithDeliveryTime = restaurants.map(restaurant => {
                 const distance = restaurant.dist.calculated;
                 const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
 
