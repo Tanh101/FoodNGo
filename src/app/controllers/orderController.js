@@ -56,6 +56,7 @@ const orderController = {
                 let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
                 distance = parseFloat(distance.toFixed(2));
                 let deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM / 1000;
+                deliveryFee = Math.ceil(deliveryFee / 1000) * 1000
                 let deliveryTime = distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME;
                 let total = totalProduct + deliveryFee;
 
@@ -133,6 +134,7 @@ const orderController = {
         distance = parseFloat(distance).toFixed(2);
 
         const deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM / 1000;
+        deliveryFee = Math.ceil(deliveryFee / 1000) * 1000;
         const deliveryTime = distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME;
         let total = totalProduct + deliveryFee;
         if (!restaurant) {
