@@ -110,6 +110,7 @@ const restaurantController = {
 
     getRestaurantById: async (req, res) => {
         try {
+            let result = null;
             const { longitude, latitude } = req.query;
             const targetCoordinate = {
                 longitude: parseFloat(longitude),
@@ -121,7 +122,22 @@ const restaurantController = {
                     message: 'Invalid longitude or latitude',
                 });
             }
-            const restaurant = await Restaurant.populate(await Restaurant.findById(req.params.id), { path: 'categories' });
+            const restaurant = await Restaurant.findById(req.params.id);
+            const categories = await Product.distinct('categories', { restaurant: req.params.id });
+            const productList = await Product.find({ restaurant: req.params.id});
+            if (productList) {
+                const resultPromises = categories.map(async category => {
+                    const categoryInfoPromise = Category.findById(category);
+                    const products = productList.filter(product => product.categories.includes(category));
+                    const categoryInfo = await categoryInfoPromise;
+                    return {
+                        category: categoryInfo,
+                        products: products
+                    };
+                });
+
+                result = await Promise.all(resultPromises);
+            }
             const restaurantCoordinate = {
                 longitude: parseFloat(restaurant.location.coordinates[0]),
                 latitude: parseFloat(restaurant.location.coordinates[1])
@@ -140,6 +156,7 @@ const restaurantController = {
                 success: true,
                 message: 'Get restaurant successfully',
                 restaurant: {
+                    result,
                     ...restaurant._doc,
                     distance,
                     deliveryTime
