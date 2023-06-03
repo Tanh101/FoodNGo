@@ -149,7 +149,7 @@ const restaurantController = {
                 });
             }
             let distance = geolib.getDistance(restaurantCoordinate, targetCoordinate);
-            distance = distance.toFixed(2);
+            distance = parseFloat(distance.toFixed(2));
             const deliveryTime = distance ? (distance * 60 /
                 (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
             return res.json({

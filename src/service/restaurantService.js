@@ -93,6 +93,7 @@ const restaurantService = {
 
     findNearbyRestaurants: async (req, res) => {
         try {
+            const category = req.query.category;
             const longitude = req.query.longitude;
             const latitude = req.query.latitude;
             const page = parseInt(req.query.page) || 1;
@@ -112,11 +113,28 @@ const restaurantService = {
                         spherical: true
                     }
                 },
-                    {
+                {
                     $skip: (page - 1) * limit
                 },
                 {
                     $limit: limit
+                },
+                {
+                    $match: {
+                        $or: [
+                            {
+                                categories: {
+                                    $in: [category]
+                                }
+                            },
+                            {
+                                categories: {
+                                    $exists: false
+                                }
+                            }
+                        ]
+
+                    }
                 }
             ]);
 
@@ -179,16 +197,6 @@ const restaurantService = {
         }
     },
 
-    getRestaurantById: async (req, res) => {
-        try {
-            const restaurant = await Restaurant.findById(req.params.id);
-            return res.json(restaurant);
-        } catch (error) {
-            return res.status(500).json({
-                error: 'Failed to fetch restaurant'
-            });
-        }
-    },
 
     getRestaurantByAccount: async (req, res) => {
         try {

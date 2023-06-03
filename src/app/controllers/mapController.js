@@ -104,7 +104,7 @@ const mapController = {
                     longitude: parseFloat(longitude)
                 };
                 let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
-                distance = distance.toFixed(2);
+                distance = parseFloat(distance.toFixed(2));
                 let deliveryFee = DELIVERY_BASE_FEE;
                 if (distance > 5.0) {
                     deliveryFee += DELIVERY_FEE_PER_KM_GREAT_THAN_FIVE;
