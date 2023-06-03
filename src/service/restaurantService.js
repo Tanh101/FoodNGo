@@ -33,23 +33,23 @@ const restaurantService = {
     updateOpeningStatus: async () => {
         try {
             const restaurants = await Restaurant.find();
-            restaurants.forEach(async (restaurant) => {
+            for (const restaurant of restaurants) {
                 const { open, close } = restaurant.openingHours;
                 const isOpening = restaurantService.checkOpeningHours(open, close);
                 if (isOpening) {
                     restaurant.status = 'open';
-                }
-                else {
+                } else {
                     restaurant.status = 'close';
                 }
                 await restaurant.save();
-            });
+            }
             return true;
         } catch (error) {
             console.log(error);
             return false;
         }
     },
+
 
     getPagingData: async (req, res) => {
         try {
