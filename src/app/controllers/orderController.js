@@ -53,7 +53,7 @@ const orderController = {
                     longitude: parseFloat(longitude)
                 };
                 let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
-                distance = distance.toFixed(2);
+                distance = parseFloat(distance.toFixed(2));
                 let deliveryFee = DELIVERY_BASE_FEE;
                 if (distance > 5.0) {
                     deliveryFee += DELIVERY_FEE_PER_KM_GREAT_THAN_FIVE;
@@ -93,11 +93,12 @@ const orderController = {
     },
     createOrder: async (req, res) => {
         const userId = req.user.userId;
-        const {
+        let {
             items, restaurantId,
             address, paymentMethod,
             note, total, deliveryFee, deliveryTime, distance
         } = req.body;
+        distance = parseFloat(distance).toFixed(2);
         const orderItems = await Promise.all(items.map(async (item) => {
             const product = await Product.findById(item.product);
             return {

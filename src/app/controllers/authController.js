@@ -15,11 +15,12 @@ const refreshTokens = {};
 const authController = {
     userRegister: async (req, res) => {
         try {
-            const { email, role, phone, } = req.body;
-            if (!email || !req.body.password || !role) {
+            let role = 'user';
+            const { email, phone, } = req.body;
+            if (!email || !req.body.password) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Missing email or password or role'
+                    message: 'Missing email or password'
                 });
             }
             let account = await Account.findOne({ email });
@@ -84,7 +85,7 @@ const authController = {
                     message: 'Url already taken'
                 });
             }
-            
+
             if(isExitName){
                 return res.status(400).json({
                     success: false,
