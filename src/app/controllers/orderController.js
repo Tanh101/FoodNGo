@@ -55,7 +55,7 @@ const orderController = {
                 };
                 let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
                 distance = parseFloat(distance.toFixed(2));
-                let deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM;
+                let deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM / 1000;
                 let deliveryTime = distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME;
                 let total = totalProduct + deliveryFee;
 
@@ -97,7 +97,7 @@ const orderController = {
             note, location
         } = req.body;
         const isUpdated = await restaurantService.updateOpeningStatus();
-        if(!isUpdated){
+        if (!isUpdated) {
             return res.status(403).json({
                 success: false,
                 message: 'Restaurant is closed'
@@ -106,7 +106,7 @@ const orderController = {
 
         const restaurant = await Restaurant.findById(restaurantId);
 
-        if(restaurant.status === 'close'){
+        if (restaurant.status === 'close') {
             return res.status(400).json({
                 success: false,
                 message: 'Restaurant is closed'
@@ -132,7 +132,7 @@ const orderController = {
         let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
         distance = parseFloat(distance).toFixed(2);
 
-        const deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM;
+        const deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM / 1000;
         const deliveryTime = distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME;
         let total = totalProduct + deliveryFee;
         if (!restaurant) {
