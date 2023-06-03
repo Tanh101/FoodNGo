@@ -1,5 +1,5 @@
 const mapService = require('../../service/mapService');
-const { DELIVERY_FEE_PER_KM_GREAT_THAN_FIVE, DELIVERY_BASE_FEE, AVERAGE_DELIVERY_SPPED, PREPARING_TIME } = require('../../utils/constants');
+const { DELIVERY_BASE_FEE, AVERAGE_DELIVERY_SPPED, PREPARING_TIME, DELIVERY_FEE_PER_KM } = require('../../utils/constants');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const Restaurant = require('../models/Restaurant');
@@ -105,12 +105,7 @@ const mapController = {
                 };
                 let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
                 distance = parseFloat(distance.toFixed(2));
-                let deliveryFee = DELIVERY_BASE_FEE;
-                if (distance > 5.0) {
-                    deliveryFee += DELIVERY_FEE_PER_KM_GREAT_THAN_FIVE;
-                } else {
-                    deliveryFee += distance * DELIVERY_FEE_PER_KM;
-                }
+                let deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM / 1000;
                 let deliveryTime = distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME;
                 return res.status(200).json({
                     success: true,
