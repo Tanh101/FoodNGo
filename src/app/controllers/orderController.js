@@ -16,6 +16,7 @@ const {
 const Product = require('../models/Product');
 const Restaurant = require('../models/Restaurant');
 const Cart = require('../models/Cart');
+const restaurantService = require('../../service/restaurantService');
 
 const orderController = {
     getInforCheckout: async (req, res) => {
@@ -93,20 +94,52 @@ const orderController = {
     },
     createOrder: async (req, res) => {
         const userId = req.user.userId;
+        let orderItems = [];
+        let totalProduct = 0;
         let {
             items, restaurantId,
             address, paymentMethod,
-            note, total, deliveryFee, deliveryTime, distance
+            note, location
         } = req.body;
-        distance = parseFloat(distance).toFixed(2);
-        const orderItems = await Promise.all(items.map(async (item) => {
-            const product = await Product.findById(item.product);
+        const isUpdated = await restaurantService.updateOpeningStatus();
+        if(!isUpdated){
+            return res.status(403).json({
+                success: false,
+                message: 'Restaurant is closed'
+            });
+        }
+
+        const restaurant = await Restaurant.findById(restaurantId);
+
+        if(restaurant.status === 'close'){
+            return res.status(400).json({
+                success: false,
+                message: 'Restaurant is closed'
+            });
+        }
+        const userCoordinates = {
+            latitude: parseFloat(location.coordinates[1]),
+            longitude: parseFloat(location.coordinates[0])
+        };
+        orderItems = await Promise.all(items.map(async (item) => {
+            const pro = await Product.findById(item.product);
+            totalProduct += pro.price * item.quantity;
+            const quantity = item.quantity;
             return {
-                product: product,
-                quantity: item.quantity,
+                product: pro,
+                quantity,
             };
         }));
-        const restaurant = await Restaurant.findById(restaurantId);
+        const restaurantCoordinates = {
+            latitude: parseFloat(restaurant.location.coordinates[1]),
+            longitude: parseFloat(restaurant.location.coordinates[0])
+        };
+        let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
+        distance = parseFloat(distance).toFixed(2);
+
+        const deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM;
+        const deliveryTime = distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME;
+        let total = totalProduct + deliveryFee;
         if (!restaurant) {
             return res.status(404).json({
                 success: false,
@@ -120,7 +153,6 @@ const orderController = {
             restaurant: restaurantId,
             orderItems,
             deliveryFee,
-            distance,
             deliveryTime,
             total,
             note
@@ -131,11 +163,7 @@ const orderController = {
                 success: true,
                 message: 'Order created successfully',
                 order: order,
-                delivery: {
-                    distance,
-                    deliveryFee,
-                    deliveryTime
-                }
+                distance: parseFloat(distance)
             });
         } else {
             res.status(400).json({
