@@ -6,4 +6,6 @@ router.get('/search', mapController.search);
 router.get('/geocode', mapController.getGeoCode);
 router.get('/address', mapController.getAddressByLocation)
 router.get('/distance', auth.verifyToken, mapController.getDistance);
+router.get('/apikey', mapController.getMapApiKey);
+
 module.exports = router;

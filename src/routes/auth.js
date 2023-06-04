@@ -37,5 +37,6 @@ router.put('/delete/:id',auth.verifyToken, auth.checkRole("admin"),  authControl
 router.put('/:id', auth.verifyToken, auth.checkRole("admin"),  authController.updateRole);
 
 
+
 module.exports = router;
 

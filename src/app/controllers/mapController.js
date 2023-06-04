@@ -129,6 +129,28 @@ const mapController = {
                 message: error.message,
             });
         }
+    },
+    getMapApiKey: async (req, res) => {
+        try {
+            const apiKey = await mapService.getMapApiKey();
+            if (apiKey) {
+                return res.status(200).json({
+                    success: true,
+                    message: "Get api key successfully",
+                    apiKey
+                });
+            }
+            return res.status(404).json({
+                success: false,
+                message: "Api key Not Found!",
+                apiKey
+            });
+        } catch (error) {
+            return res.status(404).json({
+                success: false,
+                message: error.message,
+            });
+        }
     }
 
 }
