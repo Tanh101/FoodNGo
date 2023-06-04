@@ -5,7 +5,7 @@ const serviceAccount = require('../../../serviceAccountKey.json');
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    storageBucket: 'gs://temp-34931.appspot.com',
+    storageBucket: 'temp-34931.appspot.com',
 });
 const bucket = admin.storage().bucket();
 
@@ -24,17 +24,22 @@ const uploadController = {
             cacheControl: 'public, max-age=31536000',
         };
 
-        await bucket.upload(file.path, {
+        const options = {
             destination: fileName,
             metadata: metadata,
-        });
+        };
 
-        const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+        await bucket.upload(file.path, options);
+
+        const [uploadedFile] = await bucket.file(fileName).getSignedUrl({
+            action: 'read',
+            expires: '03-01-2500', 
+        });
 
         return res.status(200).json({
             success: true,
             message: 'Image uploaded successfully',
-            publicUrl,
+            url: uploadedFile,
         });
     },
 };
