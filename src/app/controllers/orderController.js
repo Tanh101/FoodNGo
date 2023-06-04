@@ -156,6 +156,10 @@ const orderController = {
         });
         await order.save();
         if (order) {
+            const cart = await Cart.find({ user: userId });
+            if (cart.length > 0) {
+                await Cart.deleteMany({ user: userId });
+            }
             res.status(200).json({
                 success: true,
                 message: 'Order created successfully',
