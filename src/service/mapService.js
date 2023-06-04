@@ -36,7 +36,12 @@ const mapService = {
             timeout: 1000,
         });
         return response.data;
+    },
+
+    getMapApiKey: () => {
+        return process.env.GOOGLE_MAPS_API_KEY;
     }
+    
 }
 
 module.exports = mapService;
