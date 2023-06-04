@@ -13,15 +13,17 @@ const restaurantService = {
             const [openHours, openMinutes] = open.split(':');
             const [closeHours, closeMinutes] = close.split(':');
 
-            const openTime = new Date();
+            let openTime = new Date();
             openTime.setHours(openHours);
             openTime.setMinutes(openMinutes);
 
-            const closeTime = new Date();
+            let closeTime = new Date();
+
             closeTime.setHours(closeHours);
             closeTime.setMinutes(closeMinutes);
 
             const currentTime = new Date();
+            console.log(currentTime);
             if (currentTime >= openTime && currentTime < closeTime) {
                 return true;
             }
