@@ -3,8 +3,10 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
 const db = require('./app/config/db/index');
+const moment = require('moment-timezone');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
+
 const http = require('http');
 const socketIO = require('socket.io');
 const app = express();
@@ -22,9 +24,10 @@ const cartRouter = require('./routes/shoppingCart');
 const categoryRouter = require('./routes/category');
 const checkoutRouter = require('./routes/checkout');
 const orderRouter = require('./routes/order');
-const moment = require('moment-timezone');
+const uploadRouter = require('./routes/upload');
 
-const defaultTimezone ='Asia/Ho_Chi_Minh';
+
+const defaultTimezone = 'Asia/Ho_Chi_Minh';
 moment.tz.setDefault(defaultTimezone);
 
 dotenv.config();
@@ -65,6 +68,7 @@ app.use('/api/checkout', checkoutRouter);
 
 app.use('/api/orders', orderRouter);
 
+app.use('/api/upload', uploadRouter);
 //START SERVER
 
 io.onconnection = (socket) => {

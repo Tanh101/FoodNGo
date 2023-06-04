@@ -26,6 +26,11 @@ router.post('/register/restaurant', validateMiddleware.signupRestaurant, authCon
 //@access public
 router.post('/login', authController.login);
 
+//@route POST auth/logout
+//@desc Logout user
+//@access public
+router.post('/logout', authController.logout);
+
 //@route DELETE auth/delete
 //@desc delete user
 //@access public

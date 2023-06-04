@@ -353,6 +353,28 @@ const authController = {
             });
         }
     },
+    logout: async (req, res) => {
+        try {
+            const refreshToken = req.body.token;
+            if (!refreshToken || !refreshTokens.hasOwnProperty(refreshToken)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid refresh token'
+                });
+            }
+            delete refreshTokens[refreshToken];
+            return res.status(200).json({
+                success: true,
+                message: 'Logout successfully'
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
     updateStatus: async (req, res) => {
         try {
             const { id } = req.params;
