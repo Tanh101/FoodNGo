@@ -22,6 +22,10 @@ const cartRouter = require('./routes/shoppingCart');
 const categoryRouter = require('./routes/category');
 const checkoutRouter = require('./routes/checkout');
 const orderRouter = require('./routes/order');
+const moment = require('moment-timezone');
+
+const defaultTimezone ='Asia/Ho_Chi_Minh';
+moment.tz.setDefault(defaultTimezone);
 
 dotenv.config();
 
