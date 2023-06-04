@@ -173,49 +173,24 @@ const orderController = {
             });
         }
     },
-    acceptPreparing: async (req, res) => {
+    updateStatusOrder: async (req, res) => {
         try {
             const orderId = req.params.orderId;
-            const status = ORDER_STATUSSTATUS_PREPARING;
+            const status = req.query.status;
+            if (!status) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Status is required'
+                });
+            }
             const restaurantId = req.user.userId;
             const order = await Order.findById(orderId);
-            if (order && order.orderItems[0].product.restaurant === restaurantId
-                && order.status === ORDER_STATUS_ORDERED) {
-
+            if (order && order.orderItems[0].product.restaurant === restaurantId) {
                 order.status = status;
                 await order.save();
                 return res.status(200).json({
                     success: true,
                     message: 'Accept Preparing Order successfully',
-                    order: order
-                });
-            }
-            return res.status(404).json({
-                success: false,
-                message: 'Order not found'
-            });
-
-        } catch (error) {
-            return res.status(500).json({
-                success: false,
-                message: error.message
-            });
-        }
-    },
-    refuseOrder: async (req, res) => {
-        try {
-            const orderId = req.params.orderId;
-            const status = ORDER_STATUS_UNAVAILABLE;
-            const restaurantId = req.user.userId;
-            const order = await Order.findById(orderId);
-            if (order && order.orderItems[0].product.restaurant === restaurantId
-                && order.status === ORDER_STATUS_ORDERED) {
-
-                order.status = status;
-                await order.save();
-                return res.status(200).json({
-                    success: true,
-                    message: 'Refuse Order successfully',
                     order: order
                 });
             }
@@ -303,7 +278,20 @@ const orderController = {
     getOrdersByRestaurant: async (req, res) => {
         try {
             const restaurantId = req.user.userId;
-            const orders = await Order.find({ "orderItems.product.restaurant": restaurantId });
+            if (!restaurantId) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Forbidden'
+                });
+            }
+
+            const status = req.query.status;
+            let orders = [];
+            if (status) {
+                orders = await Order.find({ restaurant: restaurantId, status: status });
+            } else {
+                orders = await Order.find({ restaurant: restaurantId });
+            }
             if (orders) {
                 return res.status(200).json({
                     success: true,
@@ -321,7 +309,43 @@ const orderController = {
                 message: error.message
             });
         }
-    }
+    },
+
+    getOrdersByUser: async (req, res) => {
+        try {
+            const userId = req.user.userId;
+            if (!userId) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Forbidden'
+                });
+            }
+            const status = req.query.status;
+            let orders = [];
+            if (status) {
+                orders = await Order.find({ user: userId, status: status });
+            } else {
+                orders = await Order.find({ user: userId });
+            }
+            if (orders) {
+                return res.status(200).json({
+                    success: true,
+                    message: 'Get orders successfully',
+                    orders: orders
+                });
+            }
+            return res.status(404).json({
+                success: false,
+                message: 'Orders not found'
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
 }
 
 module.exports = orderController;
