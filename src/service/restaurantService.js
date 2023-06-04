@@ -7,32 +7,23 @@ const moment = require('moment-timezone');
 
 const restaurantService = {
 
+
     checkOpeningHours: (open, close) => {
         try {
-            moment.tz.setDefault('Asia/Ho_Chi_Minh');
-            const [openHours, openMinutes] = open.split(':');
-            const [closeHours, closeMinutes] = close.split(':');
+            const currentTime = moment().tz('Asia/Ho_Chi_Minh');
+            const openTime = moment(open, 'HH:mm');
+            const closeTime = moment(close, 'HH:mm');
+            const isWithinOpeningHours = currentTime.isSameOrAfter(openTime) && currentTime.isBefore(closeTime);
 
-            let openTime = new Date();
-            openTime.setHours(openHours);
-            openTime.setMinutes(openMinutes);
+            console.log(currentTime.format(), openTime.format(), closeTime.format());
 
-            let closeTime = new Date();
-
-            closeTime.setHours(closeHours);
-            closeTime.setMinutes(closeMinutes);
-
-            const currentTime = new Date();
-            console.log(currentTime);
-            if (currentTime >= openTime && currentTime < closeTime) {
-                return true;
-            }
-            return false;
-
+            return isWithinOpeningHours;
         } catch (error) {
+            console.error(error);
             return false;
         }
     },
+
 
     updateOpeningStatus: async () => {
         try {
