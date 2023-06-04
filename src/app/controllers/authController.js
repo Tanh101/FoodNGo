@@ -76,17 +76,17 @@ const authController = {
     restaurantRegister: async (req, res) => {
         try {
             let role = 'restaurant';
-            const { email, phone , name} = req.body;
+            const { email, phone, name } = req.body;
             const isExitName = await Restaurant.findOne({ name });
             const isExitsUrl = await Restaurant.findOne({ url: req.body.url });
-            if(isExitsUrl){
+            if (isExitsUrl) {
                 return res.status(400).json({
                     success: false,
                     message: 'Url already taken'
                 });
             }
 
-            if(isExitName){
+            if (isExitName) {
                 return res.status(400).json({
                     success: false,
                     message: 'Name already taken'
@@ -238,11 +238,15 @@ const authController = {
         return accessToken;
     },
     generateRefreshToken: async (account, user) => {
-        const refreshToken = jwt.sign({
-            role: account.role,
-            email: account.email,
-            userId: user._id
-        }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '30d' });
+        const refreshToken = jwt.sign(
+            {
+                role: account.role,
+                email: account.email,
+                userId: user._id,
+            },
+            process.env.REFRESH_TOKEN_SECRET,
+            { expiresIn: '300h' }
+        );
         return refreshToken;
     },
 
