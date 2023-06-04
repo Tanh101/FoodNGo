@@ -72,9 +72,6 @@ const shoppingCartController = {
                     const proId = cartUser.product;
                     const pro = await Product.findById(proId);
                     const restaurantId = pro.restaurant;
-                    console.log(restaurantId);
-                    console.log(restaurant._id);
-                    console.log(restaurant._id !== restaurantId);
                     if (restaurant._id.toString() !== restaurantId.toString()) {
                         return res.status(400).json({
                             success: false,

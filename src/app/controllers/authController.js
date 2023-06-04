@@ -257,7 +257,6 @@ const authController = {
             }
             jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decode) => {
                 if (err) {
-                    console.log('verify');
                     return res.status(400).json({
                         success: false,
                         message: err.message
@@ -344,7 +343,6 @@ const authController = {
                 refreshToken
             });
         } catch (error) {
-            console.log(error);
             return res.status(500).json({
                 success: false,
                 message: error.message
