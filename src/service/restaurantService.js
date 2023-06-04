@@ -3,12 +3,12 @@ const { Client } = require('@googlemaps/google-maps-services-js');
 const Restaurant = require('../app/models/Restaurant');
 const { AVERAGE_DELIVERY_SPPED, PREPARING_TIME } = require('../utils/constants');
 const Category = require('../app/models/Category');
+const moment = require('moment-timezone');
 
 const restaurantService = {
 
     checkOpeningHours: (open, close) => {
         try {
-            const moment = require('moment-timezone');
             moment.tz.setDefault('Asia/Ho_Chi_Minh');
             const [openHours, openMinutes] = open.split(':');
             const [closeHours, closeMinutes] = close.split(':');

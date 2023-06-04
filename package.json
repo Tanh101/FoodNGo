@@ -25,6 +25,7 @@
     "http": "^0.0.1-security",
     "joi": "^17.9.1",
     "jsonwebtoken": "^8.5.1",
+    "moment-timezone": "^0.5.43",
     "mongoose": "^6.1.1",
     "nodemon": "^2.0.21",
     "rl": "^0.0.1",
