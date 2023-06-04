@@ -112,6 +112,13 @@ const restaurantController = {
         try {
             let result = null;
             const { longitude, latitude } = req.query;
+            const isUpdated = await restaurantService.updateOpeningStatus();
+            if(!isUpdated){
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to update openingHours status of Restaurants'
+                });
+            }
             const targetCoordinate = {
                 longitude: parseFloat(longitude),
                 latitude: parseFloat(latitude)

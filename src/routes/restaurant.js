@@ -30,25 +30,9 @@ router.put('/', auth.verifyToken,
 router.delete('/:id',
     restaurantController.updateRestaurantStatus);
 
-
-//order 
-router.get('/:id/orders', auth.verifyToken,
-    auth.checkRole("restaurant"),
-    auth.checkPermission,
-    orderController.getOrdersByRestaurant);
-
-router.put('/orders/:orderId/accept', auth.verifyToken,
-    auth.checkRole("restaurant"),
-    orderController.acceptPreparing);
-
-router.put('/orders/:orderId/refuse', auth.verifyToken,
-    auth.checkRole("restaurant"),
-    orderController.refuseOrder);
-
 // @route GET /restaurant/:id/categories
 // @desc Get all categories of a restaurant
 // @access public
-
 router.get('/:id/categories', categoryController.getAllProductsInCategory);
 
 

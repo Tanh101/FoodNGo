@@ -21,6 +21,7 @@ const mapRouter = require('./routes/map');
 const cartRouter = require('./routes/shoppingCart');
 const categoryRouter = require('./routes/category');
 const checkoutRouter = require('./routes/checkout');
+const orderRouter = require('./routes/order');
 
 dotenv.config();
 
@@ -56,7 +57,9 @@ app.use('/api/cart', cartRouter);
 app.use('/api/category', categoryRouter);
 
 //checkout 
-app.use('/api/checkout', checkoutRouter); 
+app.use('/api/checkout', checkoutRouter);
+
+app.use('/api/orders', orderRouter);
 
 //START SERVER
 
