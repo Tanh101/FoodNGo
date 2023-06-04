@@ -8,6 +8,8 @@ const restaurantService = {
 
     checkOpeningHours: (open, close) => {
         try {
+            const moment = require('moment-timezone');
+            moment.tz.setDefault('Asia/Ho_Chi_Minh');
             const [openHours, openMinutes] = open.split(':');
             const [closeHours, closeMinutes] = close.split(':');
 
