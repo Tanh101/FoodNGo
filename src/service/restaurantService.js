@@ -196,7 +196,7 @@ const restaurantService = {
 
     createRestaurant: async (req, res, idAccount) => {
         try {
-            let { name, address, location, media, url, phone, description, rate, openingHours, categories } = req.body;
+            let { name, address, location, media, phone, description, openingHours, categories } = req.body;
             const restaurant = await Restaurant.findOne({ phone });
             if (restaurant) {
                 return res.status(400).json({
@@ -220,10 +220,8 @@ const restaurantService = {
                 openingHours,
                 categories: categoryIds,
                 media,
-                url,
                 phone,
                 description,
-                rate,
                 account: idAccount
             });
             const savedRestaurant = await newRestaurant.save();

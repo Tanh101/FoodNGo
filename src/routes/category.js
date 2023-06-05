@@ -8,6 +8,8 @@ router.post('/restaurants', auth.verifyToken, auth.checkRole('restaurant'), cate
 
 router.get('/restaurants', auth.verifyToken, auth.checkRole('restaurant'), categoryController.getAllCategoryByRestaurant);
 
+router.get('/default', categoryController.getAllCategoryDefault);
+
 router.put('/:id/restaurants', auth.verifyToken, auth.checkRole('restaurant'), categoryController.updateCategory);
 
 
