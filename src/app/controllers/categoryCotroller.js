@@ -4,16 +4,20 @@ const Product = require('../models/Product');
 
 const categoryController = {
 
-    getCategoryByName: async (categoryNames) => {
+    getAllCategoryByRestaurant: async (req, res) => {
         try {
-            const categories = await Category.find({ name: { $in: categoryNames } });
-            if (!categories) {
-                return null;
-            }
-            const categoriesId = categories.map(category => category._id);
-            return categoriesId;
+            const restaurantId = req.user.userId;
+            const categories = await Category.find({restaurant: restaurantId});
+            return res.status(200).json({
+                success: true,
+                message: 'Get all categories successfully',
+                categories
+            });
         } catch (error) {
-            return null;
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
         }
     },
 
@@ -71,7 +75,7 @@ const categoryController = {
                     message: 'Category already exists'
                 });
             }
-            const newCategory = new Category({ name , restaurant: req.user.userId});
+            const newCategory = new Category({ name, restaurant: req.user.userId });
             await newCategory.save();
             return res.status(201).json({
                 success: true,
@@ -87,27 +91,35 @@ const categoryController = {
     },
     updateCategory: async (req, res) => {
         try {
-          const { status } = req.body;
-          const result = await Category.updateMany({}, { status: status });
-          if (result.nModified === 0) {
-            return res.status(400).json({
-              success: false,
-              message: 'Category not found'
+            const { status, name } = req.body;
+            const id = req.params.id;
+            const category = await Category.findById(id);
+            if (!category) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Category not found'
+                });
+            }
+            if(!status || !name) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing required fields'
+                });
+            }
+            const result = await Category.findByIdAndUpdate(id, { status, name }, { new: true });
+            return res.status(200).json({
+                success: true,
+                message: 'Category updated successfully',
+                category: result
             });
-          }
-          return res.status(200).json({
-            success: true,
-            message: 'Category updated successfully',
-            data: result
-          });
         } catch (error) {
-          return res.status(500).json({
-            success: false,
-            message: error.message
-          });
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
         }
-      }
-      
+    }
+
 
 }
 

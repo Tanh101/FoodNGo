@@ -4,15 +4,11 @@ const router = express.Router();
 const categoryController = require('../app/controllers/categoryCotroller');
 const auth = require('../middleware/auth');
 
-//route GET /category
-//@desc find category
-//@access public
-router.get('/:name', categoryController.getCategoryByName);
+router.post('/restaurants', auth.verifyToken, auth.checkRole('restaurant'), categoryController.createCategory);
 
-router.post('/', auth.verifyToken, auth.checkRole('restaurant'), categoryController.createCategory);
+router.get('/restaurants', auth.verifyToken, auth.checkRole('restaurant'), categoryController.getAllCategoryByRestaurant);
 
-router.get('/', categoryController.getAllProductsInCategory)
+router.put('/:id/restaurants', auth.verifyToken, auth.checkRole('restaurant'), categoryController.updateCategory);
 
-router.patch('/', categoryController.updateCategory)
 
 module.exports = router;
