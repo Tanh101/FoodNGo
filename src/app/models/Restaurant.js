@@ -29,10 +29,6 @@ const RetstaurantSchema = new mongoose.Schema({
             type: String,
         }
     }],
-    url: {
-        type: String,
-        unique: true,
-    },
     phone: {
         type: String,
         required: true,
@@ -44,7 +40,7 @@ const RetstaurantSchema = new mongoose.Schema({
     rate: {
         type: Number,
         required: true,
-        default: 0
+        default: 4
 
     },
     status: {

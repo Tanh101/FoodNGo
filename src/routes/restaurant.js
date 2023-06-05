@@ -27,7 +27,7 @@ router.put('/', auth.verifyToken,
 // @route UPDATE /restaurant/:id
 // @desc update restaurant status by id
 // @access private: current restaurant
-router.delete('/:id',
+router.patch('/:id',
     restaurantController.updateRestaurantStatus);
 
 // @route GET /restaurant/:id/categories

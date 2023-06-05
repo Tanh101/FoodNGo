@@ -3,6 +3,21 @@ const Category = require('../models/Category');
 const Product = require('../models/Product');
 
 const categoryController = {
+    getAllCategoryDefault: async (req, res) => {
+        try {
+            const categories = await Category.find({status: 'default'});
+            return res.status(200).json({
+                success: true,
+                message: 'Get all categories successfully',
+                categories
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
 
     getAllCategoryByRestaurant: async (req, res) => {
         try {

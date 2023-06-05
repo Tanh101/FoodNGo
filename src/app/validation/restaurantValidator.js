@@ -15,11 +15,8 @@ const RestaurantValidator = (data) => {
             url: Joi.string()
         })),
         address: Joi.string().required(),
-        url: Joi.string().required(),
         phone: Joi.string().required(),
         description: Joi.string(),
-        rate: Joi.number().required(),
-        status: Joi.string().required(),
         categories: Joi.array(),
     });
     return restaurantSchema.validate(data);

@@ -113,7 +113,7 @@ const restaurantController = {
             let result = null;
             const { longitude, latitude } = req.query;
             const isUpdated = await restaurantService.updateOpeningStatus();
-            if(!isUpdated){
+            if (!isUpdated) {
                 return res.status(500).json({
                     success: false,
                     message: 'Failed to update openingHours status of Restaurants'
@@ -180,7 +180,7 @@ const restaurantController = {
     //update status to offline
     updateRestaurantStatus: async (req, res) => {
         try {
-            const status = req.body.status;
+            const status = req.query;
             if (status || status !== 'open' || status !== 'close' || status !== 'deleted') {
                 return res.status(400).json({
                     success: false,
@@ -212,17 +212,15 @@ const restaurantController = {
 
     updateRestaurantById: async (req, res) => {
         try {
-            const { name, address, location, openingHours, categories, media, url, phone, description, rate, status } = req.body;
+            const { name, address, location, openingHours, categories, media, phone, description, status } = req.body;
             const restaurant = await Restaurant.
                 findByIdAndUpdate(req.user.userId, {
                     name,
                     location,
                     address,
                     media,
-                    url,
                     phone,
                     description,
-                    rate,
                     status,
                     openingHours,
                     categories
