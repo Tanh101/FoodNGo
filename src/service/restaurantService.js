@@ -14,9 +14,6 @@ const restaurantService = {
             const openTime = moment(open, 'HH:mm');
             const closeTime = moment(close, 'HH:mm');
             const isWithinOpeningHours = currentTime.isSameOrAfter(openTime) && currentTime.isBefore(closeTime);
-
-            console.log(currentTime.format(), openTime.format(), closeTime.format());
-
             return isWithinOpeningHours;
         } catch (error) {
             console.error(error);
