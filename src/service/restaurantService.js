@@ -204,21 +204,13 @@ const restaurantService = {
                     message: 'Phone number already exists'
                 });
             }
-            if (categories.length > 1) {
-                categories = categories.split(',');
-            }
-            const categoryIds = await Promise.all(
-                categories.map(async (category) => {
-                    const result = await Category.findOne({ name: category });
-                    return result ? result._id : null;
-                })
-            );
+
             const newRestaurant = new Restaurant({
                 name,
                 address,
                 location,
                 openingHours,
-                categories: categoryIds,
+                categories,
                 media,
                 phone,
                 description,
