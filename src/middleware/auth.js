@@ -25,7 +25,10 @@ const auth = {
             if (userRole === role) {
                 next();
             } else {
-                return res.status(403).json("You do not have permission to access this resource");
+                return res.status(403).json({
+                    message : "Permission denied",
+                    role: userRole
+                });
             }
         };
     },
@@ -36,7 +39,7 @@ const auth = {
         if (userId === id || req.user.role === "admin") {
             next();
         } else {
-            return res.status(403).json("You do not have permission to access this resource");
+            return res.status(403).json("Permission denied");
         }
     },
 
@@ -46,7 +49,7 @@ const auth = {
         if (userId === id && req.user.role === "restaurnt" || req.user.role === "admin") {
             next();
         } else {
-            return res.status(403).json("You do not have permission to access this resource");
+            return res.status(403).json("Permission denied");
         }
     }
 }
