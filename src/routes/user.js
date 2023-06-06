@@ -11,6 +11,7 @@ const router = express.Router();
 //@access private
 router.get('/',
     auth.verifyToken,
+    auth.checkRole("user"),
     userController.getUserById
 );
 
@@ -21,6 +22,7 @@ router.get('/',
 router.put('/',
     // validateMiddleware.updateUser,
     auth.verifyToken,
+    auth.checkRole("user"),
     userController.updateUserById
 );
 
