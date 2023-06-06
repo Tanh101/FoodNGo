@@ -6,21 +6,15 @@ const validator = (schema) => (payload) =>
 const signupSchema = Joi.object({
         email: Joi.string().min(6).required().email(),
         password: Joi.string().min(6).required(),
-        role: Joi.string().required(),
         name: Joi.string().required(),
         dob: Joi.date().required(),
         gender: Joi.string().required(),
         phone: Joi.string().required(),
-        avatar: Joi.string().default(null),
+        avatar: Joi.string(),
         location: Joi.object({
-        coordinates: Joi.array().required()
-        }),
-        address: Joi.object({
-            street: Joi.string(),
-            province: Joi.string(),
-            district: Joi.string(),
-            commute: Joi.string()
-        })
+        coordinates: Joi.array().items(Joi.number()).required(),
+        }).required(),
+        address: Joi.object().required(),
 });
 
 exports.validateSignup = validator(signupSchema);

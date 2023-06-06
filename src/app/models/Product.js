@@ -14,27 +14,36 @@ const ProductSchema = new Schema({
         type: String,
         required: true
     },
-    images: {
-        type: [String],
-        required: true
-    },
-    category: {
+    media: [{
+        type: {
+            type: String,
+            required: true,
+            enum: ['image', 'video']
+        },
+        url: {
+            type: String,
+            required: true
+        }
+    }],
+    categories: [{
         type: Schema.Types.ObjectId,
-        ref: 'category',
-        required: true
-    },
+        required: true,
+    }],
     restaurant: {
         type: Schema.Types.ObjectId,
         ref: 'restaurant',
         required: true
     },
-    amount: {
-        type: Number,
-        required: true
-        
+    status: {
+        type: String,
+        required: true,
+        default: 'active',
+        enum: ['active', 'deleted', 'deactive']
     },
     deleteAt: {
         type: Date,
         default: null
     },
-}, {timestamps: true});
+}, { timestamps: true });
+
+module.exports = mongoose.model('product', ProductSchema);

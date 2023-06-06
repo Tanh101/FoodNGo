@@ -7,21 +7,19 @@ const RetstaurantSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    address: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'address',
-        required: true,
-    },
     location: {
         type: {
             type: String,
-            enum: ['Point'],
+            default: 'Point',
             required: true
         },
         coordinates: {
             type: [Number],
             required: true
         }
+    },
+    address: {
+        type: String
     },
     media: [{
         type: {
@@ -31,10 +29,6 @@ const RetstaurantSchema = new mongoose.Schema({
             type: String,
         }
     }],
-    url: {
-        type: String,
-        unique: true,
-    },
     phone: {
         type: String,
         required: true,
@@ -46,22 +40,42 @@ const RetstaurantSchema = new mongoose.Schema({
     rate: {
         type: Number,
         required: true,
-        default: 0
+        default: 4
 
     },
     status: {
         type: String,
         required: true,
-        default: 'online',
-        enum: ['online', 'busy', 'offline'],
+        default: 'pending',
+        enum: ['pending', 'open', 'close', 'deleted'],
     },
+    openingHours: {
+        type: {
+            open: {
+                type: String
+            },
+            close: {
+                type: String
+            } 
+        }
+    },
+    categories: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'category'
+    }],
     delete_at: {
         type: Date,
         default: null,
+    },
+    account: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'account',
+        required: true,
     },
 
 
 }, { timestamps: true });
 
 
-module.exports = mongoose.exports('restaurant', RetstaurantSchema);
+RetstaurantSchema.index({ location: "2dsphere" });
+module.exports = mongoose.model('restaurant', RetstaurantSchema);

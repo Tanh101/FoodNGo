@@ -7,19 +7,105 @@ const OrderSchema = new Schema({
         ref: 'user',
         required: true
     },
+    shipper: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'shipper',
+        default: null
+    },
+    address: {
+        type: Object,
+        required: true
+    },
     paymentMethod: {
         type: String,
         required: true,
         enum: ['cash', 'card']
     },
+    status: {
+        type: String,
+        required: true,
+        default: 'ordered',
+        enum: ['unavailable', 'ordered', 'accepted', 'preparing', 'ready', 'delivered', 'delivering', 'cancelled']
+    },
+    paymentStatus: {
+        type: String,
+        required: true,
+        default: 'unpaid',
+        enum: ['unpaid', 'paid']
+    },
     restaurant: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'restaurant',
         required: true
     },
-
-
-}, {timestamps: true});
+    orderItems: [
+        {
+            product: {
+                name: {
+                    type: String,
+                    required: true
+                },
+                price: {
+                    type: Number,
+                    required: true
+                },
+                description: {
+                    type: String,
+                    required: true
+                },
+                media: [{
+                    type: {
+                        type: String,
+                        required: true,
+                        enum: ['image', 'video']
+                    },
+                    url: {
+                        type: String,
+                        required: true
+                    }
+                }],
+                categories: [{
+                    type: Schema.Types.ObjectId,
+                    ref: 'category',
+                    required: true,
+                }],
+                restaurant: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'restaurant',
+                    required: true
+                },
+                status: {
+                    type: String,
+                    required: true,
+                    default: 'active',
+                    enum: ['active', 'deleted', 'deactive']
+                }
+            },
+            quantity: {
+                type: Number,
+                required: true
+            }
+        }
+    ],
+    deliveryFee: {
+        type: Number,
+    },
+    deliveryTime: {
+        type: Number,
+    },
+    total: {
+        type: Number,
+        required: true
+    },
+    note: {
+        type: String,
+        default: null
+    },
+    deleteAt: {
+        type: Date,
+        default: null
+    }
+}, { timestamps: true });
 
 
 module.exports = mongoose.model('order', OrderSchema);

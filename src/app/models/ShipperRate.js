@@ -1,15 +1,10 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const RestaurantRateSchema = new Schema({
-    restaurant: {
+const ShipperRateSchema = new Schema({
+    shipper: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'restaurant',
-        required: true
-    },
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
+        ref: 'shipper',
         required: true
     },
     rate: {
@@ -29,8 +24,17 @@ const RestaurantRateSchema = new Schema({
                 type: String,
             }
         }],
+    },
+    order: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'order',
+        required: true
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user',
+        required: true
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('restaurantRate', RestaurantRateSchema);
-
+module.exports = mongoose.model('shipperRate', ShipperRateSchema);

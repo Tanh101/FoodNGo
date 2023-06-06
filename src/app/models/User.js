@@ -8,7 +8,6 @@ const UserSchema = new Schema({
     },
     dob: {
         type: Date,
-        required: true
     },
     gender: {
         type: String,
@@ -27,24 +26,18 @@ const UserSchema = new Schema({
         required: true
     },
     location: {
+        type: {
+            type: String,
+            default: 'Point',
+            required: true
+        },
         coordinates: {
             type: [Number],
         },
     },
     address: {
-        stress: {
-            type: String,
-        },
-        province: {
-            type: String
-        },
-        district: {
-            type: String
-        },
-        commute: {
-            type: String
-        },
-    },
+        type: Object
+    }
 });
 
 module.exports = mongoose.model('users', UserSchema);
