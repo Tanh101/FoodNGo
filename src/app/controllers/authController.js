@@ -78,14 +78,6 @@ const authController = {
             let role = 'restaurant';
             const { email, phone, name } = req.body;
             const isExitName = await Restaurant.findOne({ name });
-            const isExitsUrl = await Restaurant.findOne({ url: req.body.url });
-            if (isExitsUrl) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Url already taken'
-                });
-            }
-
             if (isExitName) {
                 return res.status(400).json({
                     success: false,
