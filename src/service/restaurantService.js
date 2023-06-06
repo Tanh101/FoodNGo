@@ -28,12 +28,14 @@ const restaurantService = {
             for (const restaurant of restaurants) {
                 const { open, close } = restaurant.openingHours;
                 const isOpening = restaurantService.checkOpeningHours(open, close);
-                if (isOpening) {
-                    restaurant.status = 'open';
-                } else {
-                    restaurant.status = 'close';
+                if (restaurant.status !== 'pending' && restaurant.status !== 'deleted') {
+                    if (isOpening) {
+                        restaurant.status = 'open';
+                    } else {
+                        restaurant.status = 'close';
+                    }
+                    await restaurant.save();
                 }
-                await restaurant.save();
             }
             return true;
         } catch (error) {
@@ -77,7 +79,8 @@ const restaurantService = {
                     },
                     {
                         $match: {
-                            'categories.name': category
+                            'categories.name': category,
+                            status: { $in: ['open', 'close'] }
                         }
                     }
                 ]);
@@ -93,6 +96,11 @@ const restaurantService = {
                             maxDistance: parseFloat(20000),
                             distanceField: 'dist.calculated',
                             spherical: true
+                        }
+                    },
+                    {
+                        $match: {
+                            status: { $in: ['open', 'close'] }
                         }
                     }
                 ]);
@@ -144,7 +152,8 @@ const restaurantService = {
                     },
                     {
                         $match: {
-                            'categories.name': category
+                            'categories.name': category,
+                            status: { $in: ['open', 'close'] }
                         }
                     },
                     {
@@ -173,6 +182,11 @@ const restaurantService = {
                     },
                     {
                         $limit: limit
+                    },
+                    {
+                        $match: {
+                            status: { $in: ['open', 'close'] }
+                        }
                     }
                 ]);
             }

@@ -98,7 +98,7 @@ const authController = {
                     message: 'Email already taken'
                 });
             }
-            let isExitPhone = await User.findOne({ phone });
+            const isExitPhone = await Restaurant.findOne({ phone });
             if (isExitPhone) {
                 return res.status(400).json({
                     success: false,
