@@ -180,6 +180,7 @@ const restaurantController = {
     //update status to offline
     updateRestaurantStatus: async (req, res) => {
         try {
+            const restaurantId = req.user.userId;
             const status = req.query;
             if (status || status !== 'open' || status !== 'close' || status !== 'deleted') {
                 return res.status(400).json({
@@ -188,7 +189,7 @@ const restaurantController = {
                 });
             }
 
-            const restaurant = await Restaurant.findOne({ _id: req.params.id });
+            const restaurant = await Restaurant.findOne({ _id: restaurantId});
             if (!restaurant) {
                 return res.status(404).json({
                     success: false,

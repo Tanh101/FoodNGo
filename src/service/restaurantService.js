@@ -28,12 +28,14 @@ const restaurantService = {
             for (const restaurant of restaurants) {
                 const { open, close } = restaurant.openingHours;
                 const isOpening = restaurantService.checkOpeningHours(open, close);
-                if (isOpening) {
-                    restaurant.status = 'open';
-                } else {
-                    restaurant.status = 'close';
+                if (restaurant.status !== 'pending' && restaurant.status !== 'deleted') {
+                    if (isOpening) {
+                        restaurant.status = 'open';
+                    } else {
+                        restaurant.status = 'close';
+                    }
+                    await restaurant.save();
                 }
-                await restaurant.save();
             }
             return true;
         } catch (error) {
@@ -77,7 +79,8 @@ const restaurantService = {
                     },
                     {
                         $match: {
-                            'categories.name': category
+                            'categories.name': category,
+                            status: { $in: ['open', 'close'] }
                         }
                     }
                 ]);
@@ -93,6 +96,11 @@ const restaurantService = {
                             maxDistance: parseFloat(20000),
                             distanceField: 'dist.calculated',
                             spherical: true
+                        }
+                    },
+                    {
+                        $match: {
+                            status: { $in: ['open', 'close'] }
                         }
                     }
                 ]);
@@ -144,7 +152,8 @@ const restaurantService = {
                     },
                     {
                         $match: {
-                            'categories.name': category
+                            'categories.name': category,
+                            status: { $in: ['open', 'close'] }
                         }
                     },
                     {
@@ -173,6 +182,11 @@ const restaurantService = {
                     },
                     {
                         $limit: limit
+                    },
+                    {
+                        $match: {
+                            status: { $in: ['open', 'close'] }
+                        }
                     }
                 ]);
             }
@@ -204,21 +218,13 @@ const restaurantService = {
                     message: 'Phone number already exists'
                 });
             }
-            if (categories.length > 1) {
-                categories = categories.split(',');
-            }
-            const categoryIds = await Promise.all(
-                categories.map(async (category) => {
-                    const result = await Category.findOne({ name: category });
-                    return result ? result._id : null;
-                })
-            );
+
             const newRestaurant = new Restaurant({
                 name,
                 address,
                 location,
                 openingHours,
-                categories: categoryIds,
+                categories,
                 media,
                 phone,
                 description,
