@@ -9,13 +9,12 @@ const productController = {
         try {
             const restaurantId = req.user.userId;
             const { name, price, description, media, categories } = req.body;
-            const categoryIDs = await categoryController.getCategoryByName(categories);
             const newProduct = new Product({
                 name: name,
                 price: price,
                 description: description,
                 media: media,
-                categories: categoryIDs,
+                categories,
                 restaurant: restaurantId
             })
             await newProduct.save();
@@ -34,11 +33,33 @@ const productController = {
     },
     getAllProducts: async (req, res) => {
         try {
-            const products = await Product.find();
+            const status = req.query.status;
+            let products = [];
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            let totalProducts = 0;
+            if (status) {
+                totalProducts = await Product.countDocuments({ restaurant: req.user.userId, status: status });
+                products = await Product.find({ restaurant: req.user.userId, status: status })
+                    .skip((page - 1) * limit).limit(limit);
+            }
+            else {
+                totalProducts = await Product.countDocuments({ restaurant: req.user.userId });
+                products = await Product.find({ restaurant: req.user.userId })
+                    .skip((page - 1) * limit).limit(limit);
+            }
+            
+            const totalPages = Math.ceil(totalProducts / limit);
+            const pagination = {
+                totalPages: totalPages,
+                currentPage: page,
+                totalProducts: totalProducts
+            }
             return res.status(200).json({
                 success: true,
                 message: 'Get all products successfully',
-                products
+                products,
+                pagination
             });
         } catch (error) {
             return res.status(500).json({
@@ -80,13 +101,13 @@ const productController = {
                     message: 'You are not authorized to update this product'
                 });
             }
-            const { name, price, description, media, category } = req.body;
+            const { name, price, description, media, categories } = req.body;
             req.body.status ? product.status = req.body.status : product.status = 'active';
             product.name = name;
             product.price = price;
             product.description = description;
             product.media = media;
-            product.category = category;
+            product.categories = categories;
             await product.save();
             return res.status(200).json({
                 success: true,

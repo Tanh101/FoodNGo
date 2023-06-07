@@ -16,6 +16,7 @@ router.get('/', restaurantController.getAllRestaurants);
 // @access public
 router.get('/:id', restaurantController.getRestaurantById);
 
+
 // @route UPDATE /restaurant/:id
 // @desc Update restaurant by id
 // @access private: only current restaurant
