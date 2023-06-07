@@ -101,6 +101,10 @@ const OrderSchema = new Schema({
         type: String,
         default: null
     },
+    reason: {
+        type: String,
+        default: null
+    },
     deleteAt: {
         type: Date,
         default: null
