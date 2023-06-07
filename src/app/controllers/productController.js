@@ -9,13 +9,12 @@ const productController = {
         try {
             const restaurantId = req.user.userId;
             const { name, price, description, media, categories } = req.body;
-            const categoryIDs = await categoryController.getCategoryByName(categories);
             const newProduct = new Product({
                 name: name,
                 price: price,
                 description: description,
                 media: media,
-                categories: categoryIDs,
+                categories,
                 restaurant: restaurantId
             })
             await newProduct.save();
@@ -102,13 +101,13 @@ const productController = {
                     message: 'You are not authorized to update this product'
                 });
             }
-            const { name, price, description, media, category } = req.body;
+            const { name, price, description, media, categories } = req.body;
             req.body.status ? product.status = req.body.status : product.status = 'active';
             product.name = name;
             product.price = price;
             product.description = description;
             product.media = media;
-            product.category = category;
+            product.categories = categories;
             await product.save();
             return res.status(200).json({
                 success: true,
