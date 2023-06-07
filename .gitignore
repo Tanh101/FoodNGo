@@ -3,3 +3,4 @@ node_modules
 productData.json
 restaurantData.json
 address.json
+serviceAccountKey.json
