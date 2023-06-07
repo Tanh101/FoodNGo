@@ -34,11 +34,33 @@ const productController = {
     },
     getAllProducts: async (req, res) => {
         try {
-            const products = await Product.find();
+            const status = req.query.status;
+            let products = [];
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            let totalProducts = 0;
+            if (status) {
+                totalProducts = await Product.countDocuments({ restaurant: req.user.userId, status: status });
+                products = await Product.find({ restaurant: req.user.userId, status: status })
+                    .skip((page - 1) * limit).limit(limit);
+            }
+            else {
+                totalProducts = await Product.countDocuments({ restaurant: req.user.userId });
+                products = await Product.find({ restaurant: req.user.userId })
+                    .skip((page - 1) * limit).limit(limit);
+            }
+            
+            const totalPages = Math.ceil(totalProducts / limit);
+            const pagination = {
+                totalPages: totalPages,
+                currentPage: page,
+                totalProducts: totalProducts
+            }
             return res.status(200).json({
                 success: true,
                 message: 'Get all products successfully',
-                products
+                products,
+                pagination
             });
         } catch (error) {
             return res.status(500).json({

@@ -6,6 +6,7 @@ const restaurantService = require('../../service/restaurantService');
 const Account = require('../models/Account');
 const Category = require('../models/Category');
 const { ACCOUNT_STATUS_PENDING, AVERAGE_DELIVERY_SPPED, PREPARING_TIME } = require('../../utils/constants');
+const { getAllProducts } = require('./productController');
 
 const restaurantController = {
     getProductsByRestaurantId: async (req, res) => {
@@ -189,7 +190,7 @@ const restaurantController = {
                 });
             }
 
-            const restaurant = await Restaurant.findOne({ _id: restaurantId});
+            const restaurant = await Restaurant.findOne({ _id: restaurantId });
             if (!restaurant) {
                 return res.status(404).json({
                     success: false,
@@ -246,6 +247,55 @@ const restaurantController = {
         }
     },
 
+
+    //dashboard restaurant
+
+    getInforRestaurant: async (req, res) => {
+        try {
+            const restaurant = await Restaurant.findById(req.user.userId);
+            if (!restaurant) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Restaurant not found',
+                });
+            }
+            const account = await Account.find({ _id: restaurant.account });
+            const { password, ...accountWithouPassword } = account[0]._doc;
+            return res.status(200).json({
+                success: true,
+                message: 'Get restaurant successfully',
+                restaurant,
+                account: accountWithouPassword
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
+    getAllProducts: async (req, res) => {
+        try {
+            const products = await Product.find({ restaurant: req.user.userId });
+            if (!products) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Product not found',
+                });
+            }
+            return res.status(200).json({
+                success: true,
+                message: 'Get all products successfully',
+                products,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
 }
 
 module.exports = restaurantController;
