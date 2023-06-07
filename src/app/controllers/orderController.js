@@ -11,7 +11,8 @@ const {
     PREPARING_TIME,
     ORDER_STATUS_PENDING,
     ORDER_STATUS_PREPARING,
-    ORDER_ITEM_PER_PAGE
+    ORDER_ITEM_PER_PAGE,
+    ORDER_STATUS_READY
 } = require('../../utils/constants');
 const Product = require('../models/Product');
 const Restaurant = require('../models/Restaurant');
@@ -128,6 +129,13 @@ const orderController = {
                 quantity,
             };
         }));
+        const resId = orderItems[0].product.restaurant;
+        if (!resId.toString() === restaurant._id.toString()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Restaurant is not match'
+            });
+        }
         const restaurantCoordinates = {
             latitude: parseFloat(restaurant.location.coordinates[1]),
             longitude: parseFloat(restaurant.location.coordinates[0])
@@ -177,7 +185,7 @@ const orderController = {
     },
     updateStatusOrderByRestaurant: async (req, res) => {
         try {
-            const orderId = req.params.orderId;
+            const orderId = req.params.id;
             const status = req.query.status;
             if (!status) {
                 return res.status(400).json({
@@ -186,29 +194,34 @@ const orderController = {
                 });
             }
             const restaurantId = req.user.userId;
-            const order = await Order.findById(orderId);
+            const order = await Order.findById({ _id: orderId });
             if (order && order.orderItems[0].product.restaurant === restaurantId) {
                 if (status !== ORDER_STATUS_DELIVERING && status !== ORDER_STATUS_DELIVERED) {
-                    order.status = status;
-                    await order.save();
-                    return res.status(200).json({
-                        success: true,
-                        message: 'Update status order successfully',
-                        order: order
-                    });
+                    if (status === ORDER_STATUS_READY && (order.status === ORDER_STATUS_PREPARING) ||
+                        order.status === ORDER_STATUS_PENDING) {
+                        order.status = status;
+                    }
+                    else if (status === ORDER_STATUS_PREPARING && order.status === ORDER_STATUS_PENDING) {
+                        order.status = status;
+                    } else {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Status is invalid'
+                        });
+                    }
                 }
-                else {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'Status is invalid'
-                    });
-                }
+                await order.save();
+                return res.status(200).json({
+                    success: true,
+                    message: 'Update status order successfully',
+                    order: order
+                });
             }
+
             return res.status(404).json({
                 success: false,
                 message: 'Order not found'
             });
-
         } catch (error) {
             return res.status(500).json({
                 success: false,
@@ -379,7 +392,7 @@ const orderController = {
                 orders = await Promise.all(orders.map(async (order) => {
                     const restaurant = await Restaurant.findById(order.restaurant);
                     let shipper = null;
-                    if(order.shipper){
+                    if (order.shipper) {
                         shipper = await Shipper.findById(order.shipper);
                     }
 

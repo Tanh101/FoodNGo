@@ -10,6 +10,6 @@ router.get('/infor', auth.verifyToken, auth.checkRole('restaurant'), restaurantC
 //route GET product/
 //@desc Get all products of a restaurant and user
 //@access public
-router.get('/:id', auth.verifyToken, auth.checkRole('restaurant'), productController.getProductById);
+router.get('/products/:id', auth.verifyToken, auth.checkRole('restaurant'), productController.getProductById);
 
 module.exports = router;
