@@ -11,11 +11,14 @@ const {
     ORDER_STATUS_ORDERED,
     DELIVERY_FEE_PER_KM_GREAT_THAN_FIVE,
     AVERAGE_DELIVERY_SPPED,
-    PREPARING_TIME
+    PREPARING_TIME,
+    ORDER_STATUS_PENDING
 } = require('../../utils/constants');
 const Product = require('../models/Product');
 const Restaurant = require('../models/Restaurant');
 const Cart = require('../models/Cart');
+const User = require('../models/User');
+const Shipper = require('../models/Shipper');
 const restaurantService = require('../../service/restaurantService');
 
 const orderController = {
@@ -265,7 +268,7 @@ const orderController = {
             const userId = req.user.userId;
 
             const status = ORDER_STATUS_UNAVAILABLE;
-            // const 
+
         }
         catch (error) {
             return res.status(500).json({
@@ -293,6 +296,16 @@ const orderController = {
                 orders = await Order.find({ restaurant: restaurantId });
             }
             if (orders) {
+                orders = await Promise.all(orders.map(async (order) => {
+                    const user = await User.findById(order.user);
+                    const shipper = await Shipper.findById(order.shipper);
+                    return {
+                        order,
+                        user,
+                        shipper
+                    };
+                }));
+
                 return res.status(200).json({
                     success: true,
                     message: 'Get orders successfully',
