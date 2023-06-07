@@ -4,15 +4,14 @@ const Order = require('../models/Order');
 const {
     DELIVERY_BASE_FEE,
     DELIVERY_FEE_PER_KM,
-    ORDER_STATUSSTATUS_PREPARING,
     ORDER_STATUS_DELIVERING,
     ORDER_STATUS_DELIVERED,
     ORDER_STATUS_UNAVAILABLE,
-    ORDER_STATUS_ORDERED,
-    DELIVERY_FEE_PER_KM_GREAT_THAN_FIVE,
     AVERAGE_DELIVERY_SPPED,
     PREPARING_TIME,
-    ORDER_STATUS_PENDING
+    ORDER_STATUS_PENDING,
+    ORDER_STATUS_PREPARING,
+    ORDER_ITEM_PER_PAGE
 } = require('../../utils/constants');
 const Product = require('../models/Product');
 const Restaurant = require('../models/Restaurant');
@@ -176,7 +175,7 @@ const orderController = {
             });
         }
     },
-    updateStatusOrder: async (req, res) => {
+    updateStatusOrderByRestaurant: async (req, res) => {
         try {
             const orderId = req.params.orderId;
             const status = req.query.status;
@@ -189,13 +188,21 @@ const orderController = {
             const restaurantId = req.user.userId;
             const order = await Order.findById(orderId);
             if (order && order.orderItems[0].product.restaurant === restaurantId) {
-                order.status = status;
-                await order.save();
-                return res.status(200).json({
-                    success: true,
-                    message: 'Accept Preparing Order successfully',
-                    order: order
-                });
+                if (status !== ORDER_STATUS_DELIVERING && status !== ORDER_STATUS_DELIVERED) {
+                    order.status = status;
+                    await order.save();
+                    return res.status(200).json({
+                        success: true,
+                        message: 'Update status order successfully',
+                        order: order
+                    });
+                }
+                else {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Status is invalid'
+                    });
+                }
             }
             return res.status(404).json({
                 success: false,
@@ -216,6 +223,13 @@ const orderController = {
             const { deliveryId } = req.user.userId;
             const order = await Order.findById(orderId);
             if (order) {
+                if (order.status !== ORDER_STATUS_PREPARING) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Order is not ready'
+                    });
+                }
+
                 order.shipper = deliveryId;
                 order.status = ORDER_STATUS_DELIVERING;
                 await order.save();
@@ -288,12 +302,21 @@ const orderController = {
                 });
             }
 
-            const status = req.query.status;
             let orders = [];
+            const status = req.query.status;
+            const page = req.query.page || 1;
+            const limit = req.query.limit || ORDER_ITEM_PER_PAGE;
+            const totalResult = await Order.countDocuments({ restaurant: restaurantId });
+            const totalPage = Math.ceil(totalResult / limit);
+            const pagination = {
+                page,
+                totalResult,
+                totalPage
+            }
             if (status) {
-                orders = await Order.find({ restaurant: restaurantId, status: status });
+                orders = await Order.find({ restaurant: restaurantId, status: status }).skip((page - 1) * limit).limit(limit);
             } else {
-                orders = await Order.find({ restaurant: restaurantId });
+                orders = await Order.find({ restaurant: restaurantId }).skip((page - 1) * limit).limit(limit);
             }
             if (orders) {
                 orders = await Promise.all(orders.map(async (order) => {
@@ -309,7 +332,8 @@ const orderController = {
                 return res.status(200).json({
                     success: true,
                     message: 'Get orders successfully',
-                    orders: orders
+                    orders: orders,
+                    pagination
                 });
             }
             return res.status(404).json({
@@ -334,17 +358,43 @@ const orderController = {
                 });
             }
             const status = req.query.status;
+
             let orders = [];
+            const page = req.query.page || 1;
+            const limit = req.query.limit || ORDER_ITEM_PER_PAGE;
+            const totalResult = await Order.countDocuments({ user: userId });
+            const totalPage = Math.ceil(totalResult / limit);
+            const pagination = {
+                page,
+                totalResult,
+                totalPage
+            }
+
             if (status) {
-                orders = await Order.find({ user: userId, status: status });
+                orders = await Order.find({ user: userId, status: status }).skip((page - 1) * limit).limit(limit);
             } else {
-                orders = await Order.find({ user: userId });
+                orders = await Order.find({ user: userId }).skip((page - 1) * limit).limit(limit);
             }
             if (orders) {
+                orders = await Promise.all(orders.map(async (order) => {
+                    const restaurant = await Restaurant.findById(order.restaurant);
+                    let shipper = null;
+                    if(order.shipper){
+                        shipper = await Shipper.findById(order.shipper);
+                    }
+
+                    return {
+                        order,
+                        restaurant,
+                        shipper
+                    };
+
+                }));
                 return res.status(200).json({
                     success: true,
                     message: 'Get orders successfully',
-                    orders: orders
+                    orders: orders,
+                    pagination
                 });
             }
             return res.status(404).json({
