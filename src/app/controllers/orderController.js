@@ -143,7 +143,7 @@ const orderController = {
         let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
         distance = parseFloat(distance).toFixed(2);
         let deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM / 1000;
-        if(distance > 20){
+        if (distance > 20000) {
             return res.status(403).json({
                 success: false,
                 message: 'Delivery distance is too far'
@@ -181,7 +181,7 @@ const orderController = {
                 order: order,
                 distance: parseFloat(distance)
             });
-        }    else {
+        } else {
             res.status(400).json({
                 success: false,
                 message: 'Order not created'
@@ -332,9 +332,19 @@ const orderController = {
                 totalPage
             }
             if (status) {
-                orders = await Order.find({ restaurant: restaurantId, status: status }).skip((page - 1) * limit).limit(limit);
+                orders = await Order.find({ restaurant: restaurantId, status: status })
+                    .sort({ _id: 1 })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
             } else {
-                orders = await Order.find({ restaurant: restaurantId }).skip((page - 1) * limit).limit(limit);
+                orders = await Order.find({ restaurant: restaurantId })
+                    .sort([
+                        ["status", -1],
+                        ["_id", 1]
+                    ])
+                    .skip((page - 1) * limit)
+                    .limit(limit);
+
             }
             if (orders) {
                 orders = await Promise.all(orders.map(async (order) => {
