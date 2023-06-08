@@ -22,7 +22,8 @@ const categoryController = {
     getAllCategoryByRestaurant: async (req, res) => {
         try {
             const restaurantId = req.user.userId;
-            const categories = await Category.find({restaurant: restaurantId});
+            const status = req.query.status || 'active';
+            const categories = await Category.find({restaurant: restaurantId, status: status});
             return res.status(200).json({
                 success: true,
                 message: 'Get all categories successfully',
@@ -36,6 +37,7 @@ const categoryController = {
         }
     },
 
+    //not use
     getAllProductsInCategory: async (req, res) => {
         try {
             const categories = await Category.find();

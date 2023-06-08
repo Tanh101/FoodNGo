@@ -111,7 +111,7 @@ const orderController = {
         const restaurant = await Restaurant.findById(restaurantId);
 
         if (restaurant.status === 'close') {
-            return res.status(400).json({
+            return res.status(403).json({
                 success: false,
                 message: 'Restaurant is closed'
             });
@@ -131,7 +131,7 @@ const orderController = {
         }));
         const resId = orderItems[0].product.restaurant;
         if (!resId.toString() === restaurant._id.toString()) {
-            return res.status(400).json({
+            return res.status(403).json({
                 success: false,
                 message: 'Restaurant is not match'
             });
@@ -142,8 +142,13 @@ const orderController = {
         };
         let distance = geolib.getDistance(restaurantCoordinates, userCoordinates);
         distance = parseFloat(distance).toFixed(2);
-
         let deliveryFee = DELIVERY_BASE_FEE + distance * DELIVERY_FEE_PER_KM / 1000;
+        if(distance > 20){
+            return res.status(403).json({
+                success: false,
+                message: 'Delivery distance is too far'
+            });
+        }
         deliveryFee = Math.ceil(deliveryFee / 1000) * 1000;
         const deliveryTime = distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME;
         let total = totalProduct + deliveryFee;
@@ -176,7 +181,7 @@ const orderController = {
                 order: order,
                 distance: parseFloat(distance)
             });
-        } else {
+        }    else {
             res.status(400).json({
                 success: false,
                 message: 'Order not created'

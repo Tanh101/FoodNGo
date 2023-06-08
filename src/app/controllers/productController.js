@@ -48,21 +48,15 @@ const productController = {
     },
     getAllProducts: async (req, res) => {
         try {
-            const status = req.query.status;
+            const status = req.query.status || 'active';
             let products = [];
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 10;
             let totalProducts = 0;
-            if (status) {
-                totalProducts = await Product.countDocuments({ restaurant: req.user.userId, status: status });
-                products = await Product.find({ restaurant: req.user.userId, status: status })
-                    .skip((page - 1) * limit).limit(limit);
-            }
-            else {
-                totalProducts = await Product.countDocuments({ restaurant: req.user.userId });
-                products = await Product.find({ restaurant: req.user.userId })
-                    .skip((page - 1) * limit).limit(limit);
-            }
+            totalProducts = await Product.countDocuments({ restaurant: req.user.userId, status: status });
+            products = await Product.find({ restaurant: req.user.userId, status: status })
+                .skip((page - 1) * limit).limit(limit);
+
             const productWithCategory = await Promise.all(products.map(async (product) => {
                 const category = await Category.findById(product.category);
                 return {
@@ -171,13 +165,13 @@ const productController = {
     deleteProduct: async (req, res) => {
         try {
             const restaurantId = req.user.userId;
-            const { status } = req.body;
+            const status = 'deleted';
             const productId = req.params.id;
             const product = await Product.findOne({ _id: productId });
             if (restaurantId != product.restaurant) {
                 return res.status(401).json({
                     success: false,
-                    message: 'You are not authorized to update this product'
+                    message: 'You are not authorized to delete this product'
                 });
             }
             product.status = 'deleted';
