@@ -9,7 +9,7 @@ const ProductValidator = (data) => {
             type: Joi.string().required(),
             url: Joi.string().required()
         }),
-        categories: Joi.array().items(Joi.string().required()),
+        category: Joi.string().required(),
     });
     return ProductSchema.validate(data);
 }

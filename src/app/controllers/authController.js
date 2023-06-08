@@ -226,7 +226,7 @@ const authController = {
             email: account.email,
             role: account.role,
             userId: user._id,
-        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '300s' });
+        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '600s' });
         return accessToken;
     },
     generateRefreshToken: async (account, user) => {

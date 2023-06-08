@@ -25,10 +25,10 @@ const ProductSchema = new Schema({
             required: true
         }
     }],
-    categories: [{
+    category: {
         type: Schema.Types.ObjectId,
         required: true,
-    }],
+    },
     restaurant: {
         type: Schema.Types.ObjectId,
         ref: 'restaurant',
