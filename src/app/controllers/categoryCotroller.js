@@ -108,7 +108,7 @@ const categoryController = {
     },
     updateCategory: async (req, res) => {
         try {
-            const { status, name } = req.body;
+            const {name } = req.body;
             const id = req.params.id;
             const category = await Category.findById({ _id: id, restaurant: req.user.userId });
             if (!category) {
@@ -117,13 +117,13 @@ const categoryController = {
                     message: 'Category not found'
                 });
             }
-            if(!status || !name) {
+            if(!name) {
                 return res.status(400).json({
                     success: false,
                     message: 'Missing required fields'
                 });
             }
-            const result = await Category.findByIdAndUpdate(id, { status, name }, { new: true });
+            const result = await Category.findByIdAndUpdate(id, {  name }, { new: true });
             return res.status(200).json({
                 success: true,
                 message: 'Category updated successfully',
