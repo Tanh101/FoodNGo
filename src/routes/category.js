@@ -12,5 +12,7 @@ router.get('/default', categoryController.getAllCategoryDefault);
 
 router.put('/:id/restaurants', auth.verifyToken, auth.checkRole('restaurant'), categoryController.updateCategory);
 
+router.delete('/:id/restaurants', auth.verifyToken, auth.checkRole('restaurant'), categoryController.deleteCategory);
+
 
 module.exports = router;
