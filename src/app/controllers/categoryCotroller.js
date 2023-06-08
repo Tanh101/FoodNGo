@@ -83,7 +83,7 @@ const categoryController = {
     createCategory: async (req, res) => {
         try {
             const { name } = req.body;
-            const category = await Category.findOne({ name });
+            const category = await Category.findOne({ restaurant: req.user.userId, name });
             if (category) {
                 return res.status(400).json({
                     success: false,
