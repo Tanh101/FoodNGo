@@ -262,6 +262,8 @@ const restaurantService = {
                 const coordinates = [longitude, latitude].map(parseFloat);
                 const searchKeyword = req.query.name;
                 const regex = new RegExp(searchKeyword, 'i');
+                console.log(regex);
+                console.log(coordinates);
                 if (longitude && latitude) {
                     restaurants = await Restaurant.aggregate([
                         {
@@ -274,14 +276,6 @@ const restaurantService = {
                                 maxDistance: parseFloat(20000),
                                 distanceField: 'dist.calculated',
                                 spherical: true
-                            }
-                        },
-                        {
-                            $lookup: {
-                                from: 'categories',
-                                localField: 'categories',
-                                foreignField: '_id',
-                                as: 'categories'
                             }
                         },
                         {
@@ -303,6 +297,7 @@ const restaurantService = {
                             $limit: limit
                         }
                     ]);
+                    console.log(restaurants);
                     const restaurantWithDeliveryTime = restaurants.map(restaurant => {
                         const distance = restaurant.dist.calculated;
                         const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
