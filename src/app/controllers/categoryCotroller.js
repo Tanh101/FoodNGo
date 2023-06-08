@@ -5,7 +5,7 @@ const Product = require('../models/Product');
 const categoryController = {
     getAllCategoryDefault: async (req, res) => {
         try {
-            const categories = await Category.find({status: 'default'});
+            const categories = await Category.find({ status: 'default' });
             return res.status(200).json({
                 success: true,
                 message: 'Get all categories successfully',
@@ -23,7 +23,7 @@ const categoryController = {
         try {
             const restaurantId = req.user.userId;
             const status = req.query.status || 'active';
-            const categories = await Category.find({restaurant: restaurantId, status: status});
+            const categories = await Category.find({ restaurant: restaurantId, status: status });
             return res.status(200).json({
                 success: true,
                 message: 'Get all categories successfully',
@@ -86,10 +86,19 @@ const categoryController = {
         try {
             const { name } = req.body;
             const category = await Category.findOne({ restaurant: req.user.userId, name });
-            if (category) {
+            if (category && category.status === 'active') {
                 return res.status(400).json({
                     success: false,
                     message: 'Category already exists'
+                });
+            }
+            if (category && category.status === 'inactive') {
+                category.status = 'active';
+                await category.save();
+                return res.status(200).json({
+                    success: true,
+                    message: 'Category created successfully',
+                    data: category
                 });
             }
             const newCategory = new Category({ name, restaurant: req.user.userId });
@@ -108,7 +117,7 @@ const categoryController = {
     },
     updateCategory: async (req, res) => {
         try {
-            const {name } = req.body;
+            const { name } = req.body;
             const id = req.params.id;
             const category = await Category.findById({ _id: id, restaurant: req.user.userId });
             if (!category) {
@@ -117,13 +126,13 @@ const categoryController = {
                     message: 'Category not found'
                 });
             }
-            if(!name) {
+            if (!name) {
                 return res.status(400).json({
                     success: false,
                     message: 'Missing required fields'
                 });
             }
-            const result = await Category.findByIdAndUpdate(id, {  name }, { new: true });
+            const result = await Category.findByIdAndUpdate(id, { name }, { new: true });
             return res.status(200).json({
                 success: true,
                 message: 'Category updated successfully',

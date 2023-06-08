@@ -281,7 +281,6 @@ const restaurantService = {
                         {
                             $match: {
                                 name: { $regex: regex },
-                                'categories.name': category,
                                 status: { $in: ['open', 'close'] }
                             }
                         },
@@ -297,7 +296,14 @@ const restaurantService = {
                             $limit: limit
                         }
                     ]);
-                    console.log(restaurants);
+                    const totalResult = Object.keys(restaurants).length;
+                    const totalPage = Math.ceil(totalResult / limit);
+                    const pagination = {
+                        totalResult,
+                        currentPage: page,
+                        totalPage
+                    }
+
                     const restaurantWithDeliveryTime = restaurants.map(restaurant => {
                         const distance = restaurant.dist.calculated;
                         const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
