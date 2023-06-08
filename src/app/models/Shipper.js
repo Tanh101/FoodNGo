@@ -7,11 +7,6 @@ const ShipperSchema = new Schema({
         type: String,
         required: true
     },
-    email: {
-        type: String,
-        require: true,
-        unique: true
-    },
     phone: {
         type: String,
         require: true,
@@ -22,7 +17,7 @@ const ShipperSchema = new Schema({
     },
     avatar: {
         type: String,
-    },        
+    },
     idNumber: {
         type: String,
         require: true
@@ -30,14 +25,27 @@ const ShipperSchema = new Schema({
     status: {
         type: String,
         required: true,
-        default: 'online',
-        enum: ['online', 'deleted', 'offline']
+        default: 'pending',
+        enum: ['pending', 'online', 'deleted', 'offline']
     },
-    rate : {
+    location: {
+        type: {
+            type: String,
+            default: 'Point',
+            required: true
+        },
+        coordinates: {
+            type: [Number],
+        },
+    },
+    address: {
+        type: Object
+    },
+    rate: {
         type: Number,
         default: 0
     },
-    account : {
+    account: {
         type: Schema.Types.ObjectId,
         ref: 'account',
         required: true

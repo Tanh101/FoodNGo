@@ -248,7 +248,81 @@ const restaurantService = {
                 error: 'Failed to fetch restaurant'
             });
         }
+    },
+
+    findRestaurantByName: async (req, res) => {
+        try {
+            let restaurants = null;
+            const isUpdated = await restaurantService.updateOpeningStatus();
+            if (isUpdated) {
+                const longitude = req.query.longitude;
+                const latitude = req.query.latitude;
+                const page = parseInt(req.query.page) || 1;
+                const limit = parseInt(req.query.limit) || 9;
+                const coordinates = [longitude, latitude].map(parseFloat);
+                const searchKeyword = req.query.name;
+                const regex = new RegExp(searchKeyword, 'i');
+                if (longitude && latitude) {
+                    restaurants = await Restaurant.aggregate([
+                        {
+                            $geoNear: {
+                                near: {
+                                    type: 'Point',
+                                    coordinates
+                                },
+                                key: 'location',
+                                maxDistance: parseFloat(20000),
+                                distanceField: 'dist.calculated',
+                                spherical: true
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: 'categories',
+                                localField: 'categories',
+                                foreignField: '_id',
+                                as: 'categories'
+                            }
+                        },
+                        {
+                            $match: {
+                                name: { $regex: regex },
+                                'categories.name': category,
+                                status: { $in: ['open', 'close'] }
+                            }
+                        },
+                        {
+                            $sort: {
+                                'dist.calculated': 1
+                            }
+                        },
+                        {
+                            $skip: (page - 1) * limit
+                        },
+                        {
+                            $limit: limit
+                        }
+                    ]);
+                    const restaurantWithDeliveryTime = restaurants.map(restaurant => {
+                        const distance = restaurant.dist.calculated;
+                        const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
+
+                        return {
+                            ...restaurant,
+                            deliveryTime,
+                        };
+                    });
+                    return restaurantWithDeliveryTime;
+                }
+            }
+            return null;
+
+        } catch (error) {
+            return null;
+        }
+
     }
+
 
 
 };

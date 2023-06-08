@@ -1,13 +1,12 @@
 const express = require('express');
 const User = require('../app/models/User');
+const Shipper = require('../app/models/Shipper');
 const shipperService = {
     findShipper: async (req, res) => {
         try {
-            // Lấy vị trí từ query parameter
             const location = req.body.location;
             const coordinates = location.split(',').map(coord => parseFloat(coord));
 
-            // Tìm kiếm các nhà hàng gần vị trí người dùng trong cơ sở dữ liệu
             const shippers = await Shipper.find({
                 location: {
                     $near: {
@@ -15,12 +14,10 @@ const shipperService = {
                             type: 'Point',
                             coordinates: coordinates
                         },
-                        $maxDistance: 3000 // Bán kính tìm kiếm (đơn vị: mét)
+                        $maxDistance: 3000
                     }
                 }
             });
-
-            // Gửi danh sách các nhà hàng làm phản hồi của API
             return res.json(shippers);
         } catch (error) {
             return res.status(500).json({
@@ -30,7 +27,7 @@ const shipperService = {
     },
     isExitShipper: async (req, res) => {
         try {
-            const {phone} = req.body;
+            const { phone } = req.body;
             const shipper = await User.find({
                 phone: phone
             })
@@ -46,12 +43,31 @@ const shipperService = {
             });
         }
     },
-    
-    createShipper: async (req, res) => {
+
+    createShipper: async (req, res, account_id) => {
         try {
-            let {name, phone, avatar, location, address} = req.body;
+            let { name, phone, gender, avatar, idNumber,
+                location, address } = req.body;
+            if (name && phone && gender && avatar
+                && idNumber && location && address) {
+                let newShipper = new Shipper({
+                    name: name,
+                    phone: phone,
+                    gender: gender,
+                    avatar: avatar,
+                    idNumber: idNumber,
+                    location: location,
+                    address: address,
+                    account: account_id
+                });
+                await newShipper.save();
+                return newShipper;
+            } else {
+                return null;
+            }
         } catch (error) {
-            
+            return null;
+
         }
     }
 };

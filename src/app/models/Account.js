@@ -22,7 +22,6 @@ const AccountSchema = new Schema({
     status: {
         type: String,
         required: true,
-        default: 'active',
         enum: ['active', 'inactive', 'deleted', 'pending']
     },
     delete_at : {
