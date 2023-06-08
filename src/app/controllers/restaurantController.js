@@ -131,20 +131,22 @@ const restaurantController = {
                 });
             }
             const restaurant = await Restaurant.findById(req.params.id);
-            const categories = await Product.distinct('categories', { restaurant: req.params.id });
-            const productList = await Product.find({ restaurant: req.params.id });
-            if (productList) {
-                const resultPromises = categories.map(async category => {
-                    const categoryInfoPromise = Category.findById(category);
-                    const products = productList.filter(product => product.categories.includes(category));
-                    const categoryInfo = await categoryInfoPromise;
-                    return {
-                        category: categoryInfo,
-                        products: products
-                    };
-                });
+            const categories = await Category.find({ restaurant: req.params.id, status: 'active' });
+            if (categories) {
+                result = await Promise.all(categories.map(async category => {
+                    let product = await Product.find({
+                        category: category,
+                        restaurant: req.params.id,
+                        status: 'active'
+                    });
+                    if (product) {
+                        let pro = { ...category._doc, product };
+                        return {
+                            category: pro
+                        };
+                    }
 
-                result = await Promise.all(resultPromises);
+                }));
             }
             const restaurantCoordinate = {
                 longitude: parseFloat(restaurant.location.coordinates[0]),
