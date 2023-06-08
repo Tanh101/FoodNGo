@@ -9,13 +9,19 @@ const ShipperSchema = new Schema({
     },
     email: {
         type: String,
-        require: true
+        require: true,
+        unique: true
     },
     phone: {
         type: String,
-        require: true
+        require: true,
+        unique: true
     },
-    CCCD: {
+    gender: {
+        type: String,
+    },
+            
+    idNumber: {
         type: String,
         require: true
     },
@@ -27,7 +33,11 @@ const ShipperSchema = new Schema({
     },
     rate : {
         type: Number,
-        default: null
+        default: 0
+    },
+    account : {
+        type: Schema.Types.ObjectId,
+        ref: 'account'
     },
     deleteAt: {
         type: Date,

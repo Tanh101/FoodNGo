@@ -9,6 +9,21 @@ const productController = {
         try {
             const restaurantId = req.user.userId;
             const { name, price, description, media, category } = req.body;
+            const isValidCategory = await Category.findById({ restaurant: restaurantId, _id: category });
+            const isValidName = await Product.findOne({ restaurant: restaurantId, name: name });
+            if (isValidName) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Product name is already exist'
+                });
+            }
+
+            if (!isValidCategory) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Category is not valid'
+                });
+            }
             const newProduct = new Product({
                 name: name,
                 price: price,
@@ -50,9 +65,21 @@ const productController = {
             }
             const productWithCategory = await Promise.all(products.map(async (product) => {
                 const category = await Category.findById(product.category);
+                const pro = {
+                    _id: product._id,
+                    name: product.name,
+                    price: product.price,
+                    description: product.description,
+                    media: product.media,
+                    category: category,
+                    restaurant: product.restaurant,
+                    status: product.status,
+                    deleteAt: product.deleteAt,
+                    createdAt: product.createdAt,
+                    updatedAt: product.updatedAt
+                }
                 return {
-                    product,
-                    category
+                    product: pro,
                 }
             }));
             const totalPages = Math.ceil(totalProducts / limit);
@@ -84,11 +111,23 @@ const productController = {
                 });
             }
             const category = await Category.findById(product.category);
+            const pro = {
+                _id: product._id,
+                name: product.name,
+                price: product.price,
+                description: product.description,
+                media: product.media,
+                category: category,
+                restaurant: product.restaurant,
+                status: product.status,
+                deleteAt: product.deleteAt,
+                createdAt: product.createdAt,
+                updatedAt: product.updatedAt
+            }
             return res.status(200).json({
                 success: true,
                 message: 'Get product successfully',
-                product,
-                category
+                product: pro 
             });
         } catch (error) {
             return res.status(500).json({
