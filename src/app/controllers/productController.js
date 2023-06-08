@@ -65,7 +65,7 @@ const productController = {
             }
             const productWithCategory = await Promise.all(products.map(async (product) => {
                 const category = await Category.findById(product.category);
-                const pro = {
+                return {
                     _id: product._id,
                     name: product.name,
                     price: product.price,
@@ -77,9 +77,6 @@ const productController = {
                     deleteAt: product.deleteAt,
                     createdAt: product.createdAt,
                     updatedAt: product.updatedAt
-                }
-                return {
-                    product: pro,
                 }
             }));
             const totalPages = Math.ceil(totalProducts / limit);
@@ -127,7 +124,7 @@ const productController = {
             return res.status(200).json({
                 success: true,
                 message: 'Get product successfully',
-                product: pro 
+                product: pro
             });
         } catch (error) {
             return res.status(500).json({
