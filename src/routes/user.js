@@ -3,6 +3,7 @@ const userController = require('../app/controllers/userController');
 const validateMiddleware = require('../middleware/validationMiddleware');
 const auth = require('../middleware/auth');
 const orderController = require('../app/controllers/orderController');
+const restaurantController = require('../app/controllers/restaurantController');
 
 const router = express.Router();
 
@@ -30,9 +31,5 @@ router.put('/',
 
 router.post('/order', auth.verifyToken, auth.checkRole("user"), orderController.createOrder)
 
-
-
-
-
-
+router.get('/restaurants', restaurantController.findRestaurantByName)
 module.exports = router;

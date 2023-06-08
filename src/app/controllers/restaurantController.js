@@ -303,6 +303,7 @@ const restaurantController = {
     findRestaurantByName: async (req, res) => {
         try {
             const restaurants = await restaurantService.findRestaurantByName(req, res);
+            console.log(restaurants);
             if (!restaurants) {
                 return res.status(404).json({
                     success: false,
