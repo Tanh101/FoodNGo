@@ -20,7 +20,9 @@ const ShipperSchema = new Schema({
     gender: {
         type: String,
     },
-            
+    avatar: {
+        type: String,
+    },        
     idNumber: {
         type: String,
         require: true
@@ -37,7 +39,8 @@ const ShipperSchema = new Schema({
     },
     account : {
         type: Schema.Types.ObjectId,
-        ref: 'account'
+        ref: 'account',
+        required: true
     },
     deleteAt: {
         type: Date,
