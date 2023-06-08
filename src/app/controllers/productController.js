@@ -64,7 +64,7 @@ const productController = {
             let totalProducts = 0;
             totalProducts = await Product.countDocuments({ restaurant: req.user.userId, status: status });
             products = await Product.find({ restaurant: req.user.userId, status: status })
-                .skip((page - 1) * limit).limit(limit);
+                .skip((page - 1) * limit).limit(limit).sort({ updatedAt: 1 });
 
             const productWithCategory = await Promise.all(products.map(async (product) => {
                 const category = await Category.findById(product.category);
