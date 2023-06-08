@@ -10,18 +10,27 @@ const productController = {
             const restaurantId = req.user.userId;
             const { name, price, description, media, category } = req.body;
             const isValidCategory = await Category.findById({ restaurant: restaurantId, _id: category });
+            if (!isValidCategory) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Category is not valid'
+                });
+            }
             const isValidName = await Product.findOne({ restaurant: restaurantId, name: name });
-            if (isValidName) {
+            if (isValidName && isValidName.status == 'active') {
                 return res.status(400).json({
                     success: false,
                     message: 'Product name is already exist'
                 });
             }
-
-            if (!isValidCategory) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Category is not valid'
+            if (isValidName && isValidName.status != 'active') {
+                isValidName.status = 'active';
+                isValidName.deleteAt = null;
+                await isValidName.save();
+                return res.status(200).json({
+                    success: true,
+                    message: 'Restore product successfully',
+                    product: isValidName
                 });
             }
             const newProduct = new Product({

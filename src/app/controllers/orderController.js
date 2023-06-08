@@ -241,7 +241,7 @@ const orderController = {
             const { deliveryId } = req.user.userId;
             const order = await Order.findById(orderId);
             if (order) {
-                if (order.status !== ORDER_STATUS_PREPARING) {
+                if (order.status !== ORDER_STATUS_READY) {
                     return res.status(400).json({
                         success: false,
                         message: 'Order is not ready'
@@ -274,19 +274,22 @@ const orderController = {
             const orderId = req.params.id;
             const status = ORDER_STATUS_DELIVERED;
             const order = await Order.findById(orderId);
+
             if (order) {
-                order.status = status;
-                await order.save();
-                res.status(200).json({
-                    success: true,
-                    message: 'Accept delivered order successfully',
-                    order: order
+                if (order.status !== ORDER_STATUS_DELIVERING) {
+                    order.status = status;
+                    await order.save();
+                    res.status(200).json({
+                        success: true,
+                        message: 'Accept delivered order successfully',
+                        order: order
+                    });
+                }
+                return res.status(404).json({
+                    success: false,
+                    message: 'Order not found'
                 });
             }
-            return res.status(404).json({
-                success: false,
-                message: 'Order not found'
-            });
         } catch (error) {
             return res.status(500).json({
                 success: false,
@@ -324,7 +327,12 @@ const orderController = {
             const status = req.query.status;
             const page = req.query.page || 1;
             const limit = req.query.limit || ORDER_ITEM_PER_PAGE;
-            const totalResult = await Order.countDocuments({ restaurant: restaurantId });
+            let totalResult = 0;
+            if (!status) {
+                totalResult = await Order.countDocuments({ restaurant: restaurantId });
+            } else {
+                totalResult = await Order.countDocuments({ restaurant: restaurantId, status: status });
+            }
             const totalPage = Math.ceil(totalResult / limit);
             const pagination = {
                 page,
@@ -338,13 +346,17 @@ const orderController = {
                     .limit(limit);
             } else {
                 orders = await Order.find({ restaurant: restaurantId })
-                    .sort([
-                        ["status", -1],
-                        ["_id", 1]
-                    ])
+                    .sort({
+                        status: 1,
+                        _id: 1
+                    })
+                    .collation({
+                        locale: "en",
+                        caseFirst: "upper",
+                        numericOrdering: true
+                    })
                     .skip((page - 1) * limit)
                     .limit(limit);
-
             }
             if (orders) {
                 orders = await Promise.all(orders.map(async (order) => {
