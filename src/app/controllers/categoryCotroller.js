@@ -110,7 +110,7 @@ const categoryController = {
         try {
             const { status, name } = req.body;
             const id = req.params.id;
-            const category = await Category.findById(id);
+            const category = await Category.findById({ _id: id, restaurant: req.user.userId });
             if (!category) {
                 return res.status(400).json({
                     success: false,
@@ -128,6 +128,31 @@ const categoryController = {
                 success: true,
                 message: 'Category updated successfully',
                 category: result
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
+    deleteCategory: async (req, res) => {
+        try {
+            const id = req.params.id;
+            const category = await Category.findById({ _id: id, restaurant: req.user.userId });
+            if (!category) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Category not found'
+                });
+            }
+            category.status = 'inactive';
+            await category.save();
+            return res.status(200).json({
+                success: true,
+                message: 'Category deleted successfully',
+                category
             });
         } catch (error) {
             return res.status(500).json({
