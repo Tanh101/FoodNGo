@@ -61,6 +61,11 @@ const OrderSchema = new Schema({
     orderItems: [
         {
             product: {
+                _id: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'product',
+                    required: true
+                },
                 name: {
                     type: String,
                     required: true
