@@ -242,10 +242,11 @@ const orderController = {
         }
     },
 
-    acceptDelivering: async (req, res) => {
+    updaetOrderByShipper: async (req, res) => {
         try {
+            const status = req.query.status;
             const orderId = req.params.orderId;
-            const { deliveryId } = req.user.userId;
+            const deliveryId = req.user.userId;
             const order = await Order.findById(orderId);
             if (order) {
                 if (order.status !== ORDER_STATUS_READY) {
@@ -254,13 +255,21 @@ const orderController = {
                         message: 'Order is not ready'
                     });
                 }
-
-                order.shipper = deliveryId;
-                order.status = ORDER_STATUS_DELIVERING;
+                if (status === 'delivering' && order.shipper === null) {
+                    order.status = ORDER_STATUS_DELIVERING;
+                    order.shipper = deliveryId;
+                } else if (status === 'delivered' && order.shipper.toString() === deliveryId.toString()) {
+                    order.status = ORDER_STATUS_DELIVERED;
+                } else {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Order is not match'
+                    });
+                }
                 await order.save();
                 res.status(200).json({
                     success: true,
-                    message: 'Accept delivering order successfully',
+                    message: 'Update order status successfully',
                     order: order
                 });
             }
@@ -276,34 +285,7 @@ const orderController = {
             });
         }
     },
-    acceptDelivered: async (req, res) => {
-        try {
-            const orderId = req.params.id;
-            const status = ORDER_STATUS_DELIVERED;
-            const order = await Order.findById(orderId);
 
-            if (order) {
-                if (order.status !== ORDER_STATUS_DELIVERING) {
-                    order.status = status;
-                    await order.save();
-                    res.status(200).json({
-                        success: true,
-                        message: 'Accept delivered order successfully',
-                        order: order
-                    });
-                }
-                return res.status(404).json({
-                    success: false,
-                    message: 'Order not found'
-                });
-            }
-        } catch (error) {
-            return res.status(500).json({
-                success: false,
-                message: error.message
-            });
-        }
-    },
     cancelOrder: async (req, res) => {
         try {
             const orderId = req.params.orderId;
@@ -348,13 +330,17 @@ const orderController = {
             }
             if (status) {
                 orders = await Order.find({ restaurant: restaurantId, status: status })
-                    .sort({ _id: 1 })
+                    .sort({
+                        createAt: -1,
+                        _id: 1
+                    })
                     .skip((page - 1) * limit)
                     .limit(limit);
             } else {
                 orders = await Order.find({ restaurant: restaurantId })
                     .sort({
                         status: 1,
+                        createAt: -1,
                         _id: 1
                     })
                     .collation({
@@ -424,19 +410,17 @@ const orderController = {
             const statusOrder = ['pending', 'preparing', 'ready', 'delivering', 'delivered', 'refused', 'cancelled'];
             if (status) {
                 orders = await Order.find({ user: userId, status: status })
-                    .sort({ _id: 1 })
+                    .sort({
+                        createAt: -1,
+                        _id: 1
+                    })
                     .skip((page - 1) * limit)
                     .limit(limit);
             } else {
-                orders = await Order.find({ user: userId})
+                orders = await Order.find({ user: userId })
                     .sort({
-                        status: 1,
+                        createAt: -1,
                         _id: 1
-                    })
-                    .collation({
-                        locale: "en",
-                        caseFirst: "upper",
-                        numericOrdering: true
                     })
                     .skip((page - 1) * limit)
                     .limit(limit);
