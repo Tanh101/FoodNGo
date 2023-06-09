@@ -28,12 +28,14 @@ const restaurantService = {
             for (const restaurant of restaurants) {
                 const { open, close } = restaurant.openingHours;
                 const isOpening = restaurantService.checkOpeningHours(open, close);
-                if (isOpening) {
-                    restaurant.status = 'open';
-                } else {
-                    restaurant.status = 'close';
+                if (restaurant.status !== 'pending' && restaurant.status !== 'deleted') {
+                    if (isOpening) {
+                        restaurant.status = 'open';
+                    } else {
+                        restaurant.status = 'close';
+                    }
+                    await restaurant.save();
                 }
-                await restaurant.save();
             }
             return true;
         } catch (error) {
@@ -77,7 +79,8 @@ const restaurantService = {
                     },
                     {
                         $match: {
-                            'categories.name': category
+                            'categories.name': category,
+                            status: { $in: ['open', 'close'] }
                         }
                     }
                 ]);
@@ -93,6 +96,11 @@ const restaurantService = {
                             maxDistance: parseFloat(20000),
                             distanceField: 'dist.calculated',
                             spherical: true
+                        }
+                    },
+                    {
+                        $match: {
+                            status: { $in: ['open', 'close'] }
                         }
                     }
                 ]);
@@ -144,7 +152,8 @@ const restaurantService = {
                     },
                     {
                         $match: {
-                            'categories.name': category
+                            'categories.name': category,
+                            status: { $in: ['open', 'close'] }
                         }
                     },
                     {
@@ -173,6 +182,11 @@ const restaurantService = {
                     },
                     {
                         $limit: limit
+                    },
+                    {
+                        $match: {
+                            status: { $in: ['open', 'close'] }
+                        }
                     }
                 ]);
             }
@@ -204,21 +218,13 @@ const restaurantService = {
                     message: 'Phone number already exists'
                 });
             }
-            if (categories.length > 1) {
-                categories = categories.split(',');
-            }
-            const categoryIds = await Promise.all(
-                categories.map(async (category) => {
-                    const result = await Category.findOne({ name: category });
-                    return result ? result._id : null;
-                })
-            );
+
             const newRestaurant = new Restaurant({
                 name,
                 address,
                 location,
                 openingHours,
-                categories: categoryIds,
+                categories,
                 media,
                 phone,
                 description,
@@ -242,7 +248,82 @@ const restaurantService = {
                 error: 'Failed to fetch restaurant'
             });
         }
+    },
+
+    findRestaurantByName: async (req, res) => {
+        try {
+            let restaurants = null;
+            const isUpdated = await restaurantService.updateOpeningStatus();
+            if (isUpdated) {
+                const longitude = req.query.longitude;
+                const latitude = req.query.latitude;
+                const page = parseInt(req.query.page) || 1;
+                const limit = parseInt(req.query.limit) || 9;
+                const coordinates = [longitude, latitude].map(parseFloat);
+                const searchKeyword = req.query.name;
+                const regex = new RegExp(searchKeyword, 'i');
+                console.log(regex);
+                console.log(coordinates);
+                if (longitude && latitude) {
+                    restaurants = await Restaurant.aggregate([
+                        {
+                            $geoNear: {
+                                near: {
+                                    type: 'Point',
+                                    coordinates
+                                },
+                                key: 'location',
+                                maxDistance: parseFloat(20000),
+                                distanceField: 'dist.calculated',
+                                spherical: true
+                            }
+                        },
+                        {
+                            $match: {
+                                name: { $regex: regex },
+                                status: { $in: ['open', 'close'] }
+                            }
+                        },
+                        {
+                            $sort: {
+                                'dist.calculated': 1
+                            }
+                        },
+                        {
+                            $skip: (page - 1) * limit
+                        },
+                        {
+                            $limit: limit
+                        }
+                    ]);
+                    const totalResult = Object.keys(restaurants).length;
+                    const totalPage = Math.ceil(totalResult / limit);
+                    const pagination = {
+                        totalResult,
+                        currentPage: page,
+                        totalPage
+                    }
+
+                    const restaurantWithDeliveryTime = restaurants.map(restaurant => {
+                        const distance = restaurant.dist.calculated;
+                        const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
+
+                        return {
+                            ...restaurant,
+                            deliveryTime,
+                        };
+                    });
+                    return restaurantWithDeliveryTime;
+                }
+            }
+            return null;
+
+        } catch (error) {
+            return null;
+        }
+
     }
+
 
 
 };

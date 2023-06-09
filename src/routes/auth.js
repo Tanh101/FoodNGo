@@ -21,6 +21,11 @@ router.post('/register/user', validateMiddleware.signupUser ,authController.user
 //@access public
 router.post('/register/restaurant', validateMiddleware.signupRestaurant, authController.restaurantRegister);
 
+//@route POST auth/register/shipper
+//@desc Register shipper
+//@access public
+router.post('/register/shipper', validateMiddleware.signupShipper, authController.shipperRegister);
+
 //@route POST auth/login
 //@desc Login user
 //@access public

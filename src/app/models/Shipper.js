@@ -7,27 +7,48 @@ const ShipperSchema = new Schema({
         type: String,
         required: true
     },
-    email: {
-        type: String,
-        require: true
-    },
     phone: {
         type: String,
-        require: true
+        require: true,
+        unique: true
     },
-    CCCD: {
+    gender: {
+        type: String,
+    },
+    avatar: {
+        type: String,
+    },
+    idNumber: {
         type: String,
         require: true
     },
     status: {
         type: String,
         required: true,
-        default: 'online',
-        enum: ['online', 'deleted', 'offline']
+        default: 'pending',
+        enum: ['pending', 'online', 'deleted', 'offline']
     },
-    rate : {
+    location: {
+        type: {
+            type: String,
+            default: 'Point',
+            required: true
+        },
+        coordinates: {
+            type: [Number],
+        },
+    },
+    address: {
+        type: Object
+    },
+    rate: {
         type: Number,
-        default: null
+        default: 0
+    },
+    account: {
+        type: Schema.Types.ObjectId,
+        ref: 'account',
+        required: true
     },
     deleteAt: {
         type: Date,

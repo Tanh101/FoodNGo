@@ -8,6 +8,8 @@ const express = require('express');
 const userService = require("../../service/userService");
 const restaurantService = require("../../service/restaurantService");
 const Restaurant = require("../models/Restaurant");
+const shipperService = require("../../service/shipperService");
+const Shipper = require("../models/Shipper");
 require('dotenv').config();
 
 const refreshTokens = {};
@@ -78,14 +80,6 @@ const authController = {
             let role = 'restaurant';
             const { email, phone, name } = req.body;
             const isExitName = await Restaurant.findOne({ name });
-            const isExitsUrl = await Restaurant.findOne({ url: req.body.url });
-            if (isExitsUrl) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Url already taken'
-                });
-            }
-
             if (isExitName) {
                 return res.status(400).json({
                     success: false,
@@ -106,7 +100,7 @@ const authController = {
                     message: 'Email already taken'
                 });
             }
-            let isExitPhone = await User.findOne({ phone });
+            const isExitPhone = await Restaurant.findOne({ phone });
             if (isExitPhone) {
                 return res.status(400).json({
                     success: false,
@@ -128,7 +122,7 @@ const authController = {
                 email,
                 password: hashedPassword,
                 role,
-                status: state || constants.ACCOUNT_STATUS_ACTIVE,
+                status: state || constants.ACCOUNT_STATUS_PENDING,
             });
             newAccount = await newAccount.save();
             const { password, ...other } = newAccount._doc;
@@ -149,77 +143,60 @@ const authController = {
             });
         }
     },
-
-    register: async (req, res) => {
-        let newUser = null;
-        let newRestaurant = null;
-        let newShipper = null;
-
-        let { email, role, phone } = req.body;
+    shipperRegister: async (req, res) => {
         try {
-            let user = await Account.findOne({ email });
-            if (user) {
+            let role = 'shipper';
+            const { email, phone } = req.body;
+            if (!email || !req.body.password) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing email or password'
+                });
+            }
+            const isExitEmail =await Account.findOne({ email });
+            if (isExitEmail) {
                 return res.status(400).json({
                     success: false,
                     message: 'Email already taken'
                 });
             }
-            let isExitPhone = null;
-            if (role === 'user') {
-                isExitPhone = await User.findOne({ phone });
-            } else if (role === 'restaurant') {
-                isExitPhone = await Restaurant.findOne({ phone });
-            } else if (role === 'shipper') {
-                console.log('doing');
+            const isExitPhone = await Shipper.findOne({ phone });
+            if (isExitPhone) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Phone already taken'
+                });
             }
-
-
-            //All good
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(req.body.password, salt);
-
-            let state = constants.ACCOUNT_STATUS_ACTIVE;
-            if (role === 'restaurant' || role === 'shipper') {
-                state = constants.ACCOUNT_STATUS_PENDING;
+            const isValidPhone = constants.isPhoneNumber(phone);
+            if (!isValidPhone) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Phone number is not valid'
+                });
             }
-
+            const isExitIdNumber = await Shipper.findOne({ idNumber: req.body.idNumber });
+            if (isExitIdNumber) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Id number already taken'
+                });
+            }
+            const hashedPassword = await bcrypt.hash(req.body.password, 10);
             let newAccount = new Account({
                 email,
                 password: hashedPassword,
                 role,
-                status: state || constants.ACCOUNT_STATUS_ACTIVE,
+                status: 'pending'
             });
             newAccount = await newAccount.save();
-            if (role === 'user') {
-                newUser = await userService.createUser(req, res, newAccount._id);
-            } else if (role === 'restaurant') {
-                newRestaurant = await restaurantService.createRestaurant(req, res, newAccount._id);
-            } else if (role === 'shipper') {
-                userService.createUser(req, res);
-            }
-            const { password, ...other } = newAccount._doc;
-            if (newUser && newAccount) {
+            let newShipper = await shipperService.createShipper(req, res, newAccount._id);
+            if (newShipper) {
                 return res.status(201).json({
                     success: true,
                     message: 'Register successfully',
-                    user: newUser,
-                    ...other,
+                    shipper: newShipper,
                 });
             }
-
-            if (newRestaurant && newAccount) {
-                return res.status(201).json({
-                    success: true,
-                    message: 'Register successfully',
-                    restaurant: newRestaurant,
-                    ...other,
-                });
-            }
-
-            return res.status(500).json({
-                success: false,
-                message: 'Server error',
-            });
 
         } catch (error) {
             return res.status(500).json({
@@ -229,12 +206,14 @@ const authController = {
         }
     },
 
+
+
     generateAccesstoken: async (account, user) => {
         const accessToken = jwt.sign({
             email: account.email,
             role: account.role,
             userId: user._id,
-        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '300s' });
+        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '600s' });
         return accessToken;
     },
     generateRefreshToken: async (account, user) => {
@@ -292,8 +271,6 @@ const authController = {
     login: async (req, res) => {
         try {
             let user = null;
-            let restaurant = null;
-            let shipper = null;
             if (!req.body.email || !req.body.password) {
                 return res.status(400).json({
                     success: false,
@@ -324,7 +301,7 @@ const authController = {
             else if (account.role === 'restaurant')
                 user = await Restaurant.findOne({ account: account });
             else if (account.role === 'shipper')
-                console.log('doing');
+                user = await Shipper.findOne({ account: account });
 
             const isValidPassword = await bcrypt.compare(req.body.password, account.password);
             if (!isValidPassword) {

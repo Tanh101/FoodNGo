@@ -25,10 +25,10 @@ const ProductSchema = new Schema({
             required: true
         }
     }],
-    categories: [{
+    category: {
         type: Schema.Types.ObjectId,
         required: true,
-    }],
+    },
     restaurant: {
         type: Schema.Types.ObjectId,
         ref: 'restaurant',
@@ -38,7 +38,7 @@ const ProductSchema = new Schema({
         type: String,
         required: true,
         default: 'active',
-        enum: ['active', 'deleted', 'deactive']
+        enum: ['active', 'deleted']
     },
     deleteAt: {
         type: Date,

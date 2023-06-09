@@ -16,6 +16,7 @@ router.get('/', restaurantController.getAllRestaurants);
 // @access public
 router.get('/:id', restaurantController.getRestaurantById);
 
+
 // @route UPDATE /restaurant/:id
 // @desc Update restaurant by id
 // @access private: only current restaurant
@@ -27,14 +28,8 @@ router.put('/', auth.verifyToken,
 // @route UPDATE /restaurant/:id
 // @desc update restaurant status by id
 // @access private: current restaurant
-router.patch('/:id',
+router.patch('/:id', auth.verifyToken, auth.checkRole('restaurant'),
     restaurantController.updateRestaurantStatus);
-
-// @route GET /restaurant/:id/categories
-// @desc Get all categories of a restaurant
-// @access public
-router.get('/:id/categories', categoryController.getAllProductsInCategory);
-
 
 module.exports = router;
 

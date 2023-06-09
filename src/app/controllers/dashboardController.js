@@ -212,6 +212,14 @@ const dashboardController = {
             });
         }
     },
+
+    ///role admin
+    findRestaurantByName: async (req, res) => {
+        try {
+        } catch (error) {
+            
+        }
+    }
 }
 
 module.exports = dashboardController;

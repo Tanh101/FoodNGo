@@ -6,6 +6,7 @@ const restaurantService = require('../../service/restaurantService');
 const Account = require('../models/Account');
 const Category = require('../models/Category');
 const { ACCOUNT_STATUS_PENDING, AVERAGE_DELIVERY_SPPED, PREPARING_TIME } = require('../../utils/constants');
+const { getAllProducts } = require('./productController');
 
 const restaurantController = {
     getProductsByRestaurantId: async (req, res) => {
@@ -87,7 +88,7 @@ const restaurantController = {
                     }
                 }
                 else {
-                    restaurants = await Restaurant.find({ status: 'online' });
+                    restaurants = await Restaurant.find({ status: { $in: ['opne', 'close'] } });
                     return res.json({
                         success: true,
                         message: 'Get all restaurants successfully',
@@ -130,20 +131,22 @@ const restaurantController = {
                 });
             }
             const restaurant = await Restaurant.findById(req.params.id);
-            const categories = await Product.distinct('categories', { restaurant: req.params.id });
-            const productList = await Product.find({ restaurant: req.params.id });
-            if (productList) {
-                const resultPromises = categories.map(async category => {
-                    const categoryInfoPromise = Category.findById(category);
-                    const products = productList.filter(product => product.categories.includes(category));
-                    const categoryInfo = await categoryInfoPromise;
-                    return {
-                        category: categoryInfo,
-                        products: products
-                    };
-                });
+            const categories = await Category.find({ restaurant: req.params.id, status: 'active' });
+            if (categories) {
+                result = await Promise.all(categories.map(async category => {
+                    let product = await Product.find({
+                        category: category,
+                        restaurant: req.params.id,
+                        status: 'active'
+                    });
+                    if (product) {
+                        let pro = { ...category._doc, product };
+                        return {
+                            category: pro
+                        };
+                    }
 
-                result = await Promise.all(resultPromises);
+                }));
             }
             const restaurantCoordinate = {
                 longitude: parseFloat(restaurant.location.coordinates[0]),
@@ -180,6 +183,7 @@ const restaurantController = {
     //update status to offline
     updateRestaurantStatus: async (req, res) => {
         try {
+            const restaurantId = req.user.userId;
             const status = req.query;
             if (status || status !== 'open' || status !== 'close' || status !== 'deleted') {
                 return res.status(400).json({
@@ -188,7 +192,7 @@ const restaurantController = {
                 });
             }
 
-            const restaurant = await Restaurant.findOne({ _id: req.params.id });
+            const restaurant = await Restaurant.findOne({ _id: restaurantId });
             if (!restaurant) {
                 return res.status(404).json({
                     success: false,
@@ -245,7 +249,149 @@ const restaurantController = {
         }
     },
 
+
+    //dashboard restaurant
+
+    getInforRestaurant: async (req, res) => {
+        try {
+            const restaurant = await Restaurant.findById(req.user.userId);
+            if (!restaurant) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Restaurant not found',
+                });
+            }
+            const account = await Account.find({ _id: restaurant.account });
+            const { password, ...accountWithouPassword } = account[0]._doc;
+            return res.status(200).json({
+                success: true,
+                message: 'Get restaurant successfully',
+                restaurant,
+                account: accountWithouPassword
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
+    getAllProducts: async (req, res) => {
+        try {
+            const products = await Product.find({ restaurant: req.user.userId });
+            if (!products) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Product not found',
+                });
+            }
+            return res.status(200).json({
+                success: true,
+                message: 'Get all products successfully',
+                products,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
+    //role user
+    findRestaurantByName: async (req, res) => {
+        try {
+
+            let restaurants = null;
+            const isUpdated = await restaurantService.updateOpeningStatus();
+            if (isUpdated) {
+                const longitude = req.query.longitude;
+                const latitude = req.query.latitude;
+                const page = parseInt(req.query.page) || 1;
+                const limit = parseInt(req.query.limit) || 9;
+                const coordinates = [longitude, latitude].map(parseFloat);
+                const searchKeyword = req.query.name;
+                const regex = new RegExp(searchKeyword, 'i');
+                if (longitude && latitude) {
+                    restaurants = await Restaurant.aggregate([
+                        {
+                            $geoNear: {
+                                near: {
+                                    type: 'Point',
+                                    coordinates
+                                },
+                                key: 'location',
+                                maxDistance: parseFloat(20000),
+                                distanceField: 'dist.calculated',
+                                spherical: true
+                            }
+                        },
+                        {
+                            $match: {
+                                name: { $regex: regex },
+                                status: { $in: ['open', 'close'] }
+                            }
+                        },
+                        {
+                            $sort: {
+                                'dist.calculated': 1
+                            }
+                        },
+                        {
+                            $skip: (page - 1) * limit
+                        },
+                        {
+                            $limit: limit
+                        }
+                    ]);
+                    const totalResult = Object.keys(restaurants).length;
+                    const totalPage = Math.ceil(totalResult / limit);
+                    const pagination = {
+                        totalResult,
+                        currentPage: page,
+                        totalPage
+                    }
+
+                    const restaurantWithDeliveryTime = restaurants.map(restaurant => {
+                        const distance = restaurant.dist.calculated;
+                        const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
+
+                        return {
+                            ...restaurant,
+                            deliveryTime,
+                            distance
+                        };
+                    });
+                    return res.json({
+                        success: true,
+                        message: 'Get all restaurants successfully',
+                        restaurants: restaurantWithDeliveryTime,
+                        pagination,
+                    });
+                }
+                const tmp = await Restaurant.find({ name: { $regex: regex }, status: { $in: ['open', 'close'] } });
+                return res.json({
+                    success: true,
+                    message: 'Get all restaurants successfully',
+                    restaurants: tmp,
+                });
+            } else {
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to update openingHours status of Restaurants'
+                });
+            }
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
 }
+
+
 
 module.exports = restaurantController;
 
