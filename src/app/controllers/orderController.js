@@ -194,6 +194,7 @@ const orderController = {
         try {
             const orderId = req.params.id;
             const status = req.query.status;
+            const reason = req.body.reason;
             if (!status) {
                 return res.status(400).json({
                     success: false,
@@ -206,15 +207,30 @@ const orderController = {
                 if (status !== ORDER_STATUS_DELIVERING && status !== ORDER_STATUS_DELIVERED) {
                     if (status === ORDER_STATUS_READY && (order.status === ORDER_STATUS_PREPARING) ||
                         order.status === ORDER_STATUS_PENDING) {
+                        order.reason = null;
                         order.status = status;
                     }
                     else if (status === ORDER_STATUS_PREPARING && order.status === ORDER_STATUS_PENDING) {
                         order.status = status;
+                        order.reason = null;
                     }
                     else if (status === ORDER_STATUS_REFUSE && (order.status === ORDER_STATUS_PENDING
                         || order.status === ORDER_STATUS_PREPARING)) {
                         order.status = status;
+                        if (!reason) {
+                            return res.status(400).json({
+                                success: false,
+                                message: 'Reason is required'
+                            });
+                        }
+                        order.reason = reason;
 
+                    } else if (status === order.status) {
+                        if(status === ORDER_STATUS_REFUSE){
+                            order.reason = reason;
+                        }else {
+                            order.reason = null;
+                        }
                     } else {
                         return res.status(400).json({
                             success: false,
