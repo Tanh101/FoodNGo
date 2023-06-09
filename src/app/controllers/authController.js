@@ -153,7 +153,7 @@ const authController = {
                     message: 'Missing email or password'
                 });
             }
-            const isExitEmail =await Account.findOne({ email });
+            const isExitEmail = await Account.findOne({ email });
             if (isExitEmail) {
                 return res.status(400).json({
                     success: false,
@@ -351,6 +351,42 @@ const authController = {
             });
         }
     },
+
+    updatePassword: async (req, res) => {
+        try {
+            const id = req.user.userId;
+            const email = req.user.email;
+            const { currentPassword, newPassword } = req.body;
+            const account = await Account.findOne({ email });
+            if (!account) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Account not found',
+                });
+            }
+            const isMatch = await bcrypt.compare(currentPassword, account.password);
+            if (!isMatch) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Current password is incorrect',
+                });
+            }
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(newPassword, salt);
+            account.password = hashedPassword;
+            await account.save();
+            return res.status(200).json({
+                success: true,
+                message: 'Password updated successfully',
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message,
+            });
+        }
+    },
+
 
     updateStatus: async (req, res) => {
         try {

@@ -13,6 +13,8 @@ router.get('/shippers', auth.verifyToken, auth.checkRole('shipper'), orderContro
 
 router.get('/find', auth.verifyToken, auth.checkRole('shipper'), orderController.findOrderNearShipper);
 
+router.get('/:id/details', auth.verifyToken,  orderController.getOrderDetails);
+
 router.patch('/:id/user', auth.verifyToken, auth.checkRole('user'), orderController.cancelOrder);
 
 router.patch('/:id/shipper', auth.verifyToken, auth.checkRole('shipper'), orderController.updaetOrderByShipper);

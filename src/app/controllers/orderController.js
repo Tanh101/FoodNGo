@@ -323,11 +323,39 @@ const orderController = {
 
     cancelOrder: async (req, res) => {
         try {
-            const orderId = req.params.orderId;
+            const orderId = req.params.id;
             const userId = req.user.userId;
+            const status = ORDER_STATUS_CANCELLED;
+            const order = await Order.findById(orderId);
+            if (order && order.user.toString() === userId.toString()) {
+                if (order.status === 'pending') {
+                    if (req.body.reason) {
+                        order.reason = req.body.reason;
+                        order.status = status;
+                        await order.save();
+                        return res.status(200).json({
+                            success: true,
+                            message: 'Order cancelled successfully',
+                            order: order
+                        });
+                    }
+                    else {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Reason is required'
+                        });
+                    }
+                }
+                return res.status(400).json({
+                    success: false,
+                    message: 'Order is not pending'
+                });
 
-            const status = ORDER_STATUS_UNAVAILABLE;
-
+            }
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
         }
         catch (error) {
             return res.status(500).json({
@@ -409,18 +437,6 @@ const orderController = {
                 message: 'Orders not found'
             });
         } catch (error) {
-            return res.status(500).json({
-                success: false,
-                message: error.message
-            });
-        }
-    },
-
-    getOrderById: async (req, res) => {
-        try {
-            const orderId = req.params.orderId;
-        }
-        catch (error) {
             return res.status(500).json({
                 success: false,
                 message: error.message
@@ -648,7 +664,7 @@ const orderController = {
 
     getOrderDetails: async (req, res) => {
         try {
-            const orderId = req.params.orderId;
+            const orderId = req.params.id;
             const order = await Order.findById(orderId);
             if (order) {
                 const restaurant = await Restaurant.findById(order.restaurant);
@@ -667,7 +683,7 @@ const orderController = {
                     user: user,
                     restaurant: restaurant,
                     shipper: shipper,
-                    
+
                 }
                 return res.status(200).json({
                     success: true,
