@@ -13,7 +13,7 @@ const router = express.Router();
 router.get('/',
     auth.verifyToken,
     auth.checkRole("user"),
-    userController.getUserById
+    userController.getUserInfor
 );
 
 
@@ -26,6 +26,8 @@ router.put('/',
     auth.checkRole("user"),
     userController.updateUserById
 );
+
+
 
 //@router GET
 

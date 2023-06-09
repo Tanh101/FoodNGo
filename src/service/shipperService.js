@@ -61,7 +61,6 @@ const shipperService = {
                     account: account_id
                 });
                 const shipper = newShipper.save();
-                console.log(shipper);
                 return shipper;
             } else {
                 return null;
