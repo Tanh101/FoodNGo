@@ -48,7 +48,7 @@ const shipperService = {
         try {
             let { name, phone, gender, avatar, idNumber,
                 location, address } = req.body;
-            if (name && phone && gender && avatar
+            if (name && phone && gender
                 && idNumber && location && address) {
                 let newShipper = new Shipper({
                     name: name,
@@ -60,8 +60,8 @@ const shipperService = {
                     address: address,
                     account: account_id
                 });
-                await newShipper.save();
-                return newShipper;
+                const shipper = newShipper.save();
+                return shipper;
             } else {
                 return null;
             }

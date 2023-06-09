@@ -3,7 +3,7 @@ const User = require('../models/User');
 const Account = require('../models/Account');
 
 const userController = {
-    getUserById: async (req, res) => {
+    getUserInfor: async (req, res) => {
         const id = req.user.userId;
         try {
             const user = await User.findById(id);

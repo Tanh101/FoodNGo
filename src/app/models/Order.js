@@ -7,6 +7,16 @@ const OrderSchema = new Schema({
         ref: 'user',
         required: true
     },
+    userLocation: {
+        type: {
+            type: String,
+            default: 'Point',
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
+    },
     shipper: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'shipper',
@@ -25,7 +35,7 @@ const OrderSchema = new Schema({
         type: String,
         required: true,
         default: 'pending',
-        enum: ['pending', 'cancelled', 'refused', 'ready', 'preparing', 'delivered', 'delivering', ]
+        enum: ['pending', 'cancelled', 'refused', 'ready', 'preparing', 'delivered', 'delivering',]
     },
     paymentStatus: {
         type: String,
@@ -38,9 +48,24 @@ const OrderSchema = new Schema({
         ref: 'restaurant',
         required: true
     },
+    restaurantLocation: {
+        type: {
+            type: String,
+            default: 'Point',
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
+    },
     orderItems: [
         {
             product: {
+                _id: {
+                    type: Schema.Types.ObjectId,
+                    ref: 'product',
+                    required: true
+                },
                 name: {
                     type: String,
                     required: true
@@ -110,6 +135,7 @@ const OrderSchema = new Schema({
         default: null
     }
 }, { timestamps: true });
-
+OrderSchema.index({ userLocation: "2dsphere" });
+OrderSchema.index({ restaurantLocation: "2dsphere" });
 
 module.exports = mongoose.model('order', OrderSchema);

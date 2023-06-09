@@ -26,6 +26,7 @@ const checkoutRouter = require('./routes/checkout');
 const orderRouter = require('./routes/order');
 const uploadRouter = require('./routes/upload');
 const restaurantDashboardRouter = require('./routes/restaurantDashboard');
+const shipperRouter = require('./routes/shipper');
 
 
 const defaultTimezone = 'Asia/Ho_Chi_Minh';
@@ -70,6 +71,8 @@ app.use('/api/checkout', checkoutRouter);
 app.use('/api/orders', orderRouter);
 
 app.use('/api/upload', uploadRouter);
+
+app.use('/api/shipper', shipperRouter);
 
 app.use('/api/restaurant-dashboard', restaurantDashboardRouter);
 //START SERVER

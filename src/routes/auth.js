@@ -36,6 +36,11 @@ router.post('/login', authController.login);
 //@access public
 router.post('/logout', authController.logout);
 
+//@route GET auth/me
+//@desc Get user info
+//@access public
+router.put('/security', auth.verifyToken, auth.checkRole('user'), authController.updatePassword);
+
 //@route DELETE auth/delete
 //@desc delete user
 //@access public
