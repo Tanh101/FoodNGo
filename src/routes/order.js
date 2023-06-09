@@ -9,6 +9,7 @@ router.get('/restaurants', auth.verifyToken, auth.checkRole('restaurant'), order
 
 router.get('/users', auth.verifyToken, auth.checkRole('user'), orderController.getOrdersByUser);
 
+
 router.patch('/:id', auth.verifyToken, auth.checkRole('restaurant'), orderController.updateStatusOrderByRestaurant);
 
 module.exports = router;

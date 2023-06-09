@@ -12,7 +12,9 @@ const {
     ORDER_STATUS_PENDING,
     ORDER_STATUS_PREPARING,
     ORDER_ITEM_PER_PAGE,
-    ORDER_STATUS_READY
+    ORDER_STATUS_READY,
+    ORDER_STATUS_REFUSE,
+    ORDER_STATUS_CANCELLED
 } = require('../../utils/constants');
 const Product = require('../models/Product');
 const Restaurant = require('../models/Restaurant');
@@ -199,8 +201,8 @@ const orderController = {
                 });
             }
             const restaurantId = req.user.userId;
-            const order = await Order.findById({ _id: orderId });
-            if (order && order.orderItems[0].product.restaurant === restaurantId) {
+            let order = await Order.findById({ _id: orderId });
+            if (order && order.orderItems[0].product.restaurant.toString() === restaurantId.toString()) {
                 if (status !== ORDER_STATUS_DELIVERING && status !== ORDER_STATUS_DELIVERED) {
                     if (status === ORDER_STATUS_READY && (order.status === ORDER_STATUS_PREPARING) ||
                         order.status === ORDER_STATUS_PENDING) {
@@ -208,6 +210,11 @@ const orderController = {
                     }
                     else if (status === ORDER_STATUS_PREPARING && order.status === ORDER_STATUS_PENDING) {
                         order.status = status;
+                    }
+                    else if (status === ORDER_STATUS_REFUSE && (order.status === ORDER_STATUS_PENDING
+                        || order.status === ORDER_STATUS_PREPARING)) {
+                        order.status = status;
+
                     } else {
                         return res.status(400).json({
                             success: false,
@@ -402,19 +409,39 @@ const orderController = {
             let orders = [];
             const page = req.query.page || 1;
             const limit = req.query.limit || ORDER_ITEM_PER_PAGE;
-            const totalResult = await Order.countDocuments({ user: userId });
+            let totalResult = 0;
+            if (!status) {
+                totalResult = await Order.countDocuments({ user: userId });
+            } else {
+                totalResult = await Order.countDocuments({ user: userId, status: status });
+            }
             const totalPage = Math.ceil(totalResult / limit);
             const pagination = {
                 page,
                 totalResult,
                 totalPage
             }
-
+            const statusOrder = ['pending', 'preparing', 'ready', 'delivering', 'delivered', 'refused', 'cancelled'];
             if (status) {
-                orders = await Order.find({ user: userId, status: status }).skip((page - 1) * limit).limit(limit);
+                orders = await Order.find({ user: userId, status: status })
+                    .sort({ _id: 1 })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
             } else {
-                orders = await Order.find({ user: userId }).skip((page - 1) * limit).limit(limit);
+                orders = await Order.find({ user: userId})
+                    .sort({
+                        status: 1,
+                        _id: 1
+                    })
+                    .collation({
+                        locale: "en",
+                        caseFirst: "upper",
+                        numericOrdering: true
+                    })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
             }
+
             if (orders) {
                 orders = await Promise.all(orders.map(async (order) => {
                     const restaurant = await Restaurant.findById(order.restaurant);

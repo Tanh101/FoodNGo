@@ -149,7 +149,30 @@ const productController = {
                 });
             }
             const { name, price, description, media, category } = req.body;
-            req.body.status ? product.status = req.body.status : product.status = 'active';
+            const isExistName = await Product.findOne({ restaurant: restaurantId, name: name });
+            if (isExistName && isExistName.status == 'active') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Product name is already exist'
+                });
+            }
+
+            if (isExistName && isExistName.status != 'active') {
+                isExistName.name = name;
+                isExistName.price = price;
+                isExistName.description = description;
+                isExistName.media = media;
+                isExistName.category = category;
+                isExistName.status = 'active';
+                isExistName.deleteAt = null;
+                await isExistName.save();
+                await product.save();
+                return res.status(200).json({
+                    success: true,
+                    message: 'Restore product successfully',
+                    product: isExistName
+                });
+            }
             product.name = name;
             product.price = price;
             product.description = description;
@@ -174,7 +197,6 @@ const productController = {
     deleteProduct: async (req, res) => {
         try {
             const restaurantId = req.user.userId;
-            const status = 'deleted';
             const productId = req.params.id;
             const product = await Product.findOne({ _id: productId });
             if (restaurantId != product.restaurant) {
