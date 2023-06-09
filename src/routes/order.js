@@ -13,6 +13,6 @@ router.patch('/:id/user', auth.verifyToken, auth.checkRole('user'), orderControl
 
 router.patch('/:id/shipper', auth.verifyToken, auth.checkRole('shipper'), orderController.updaetOrderByShipper);
 
-router.patch('/:id/restaruant', auth.verifyToken, auth.checkRole('restaurant'), orderController.updateStatusOrderByRestaurant);
+router.patch('/:id/restaurant', auth.verifyToken, auth.checkRole('restaurant'), orderController.updateStatusOrderByRestaurant);
 
 module.exports = router;
