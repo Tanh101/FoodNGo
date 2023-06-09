@@ -189,12 +189,12 @@ const authController = {
                 status: 'pending'
             });
             newAccount = await newAccount.save();
-            let newShipper = await shipperService.createShipper(req, res, newAccount._id);
-            if (newShipper) {
+            const shipper = await shipperService.createShipper(req, res, newAccount._id);
+            if (shipper) {
                 return res.status(201).json({
                     success: true,
                     message: 'Register successfully',
-                    shipper: newShipper,
+                    shipper: shipper,
                 });
             }
 
