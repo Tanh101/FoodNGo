@@ -29,10 +29,10 @@ const restaurantService = {
                 const { open, close } = restaurant.openingHours;
                 const isOpening = restaurantService.checkOpeningHours(open, close);
                 if (restaurant.status !== 'pending' && restaurant.status !== 'deleted') {
-                    if (isOpening && restaurant.status !== 'open') {
+                    if (isOpening && restaurant.status === 'close') {
                         restaurant.status = 'open';
                         await restaurant.save();
-                    } else if(!isOpening && restaurant.status !== 'close'){
+                    } else if(!isOpening && restaurant.status === 'open'){
                         restaurant.status = 'close';
                         await restaurant.save();
                     }

@@ -3,14 +3,150 @@ const Restaurant = require('../models/Restaurant');
 const User = require('../models/User');
 const Account = require('../models/Account');
 const Category = require('../models/Category');
+const Shipper = require('../models/Shipper');
 
 const dashboardController = {
     getAllRestaurants: async (req, res) => {
         let restaurants = null;
         let { status } = req.query;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        let totalResult = 0;
         try {
             if (status) {
+                totalResult = await Restaurant.aggregate([
+                    {
+                        $lookup: {
+                            from: 'accounts',
+                            localField: 'account',
+                            foreignField: '_id',
+                            as: 'account'
+                        }
+                    },
+                    {
+                        $unwind: '$account'
+                    },
+                    {
+                        $match: { 'account.status': status }
+                    }
+                ]).exec();
                 restaurants = await Restaurant.aggregate([
+                    {
+                        $lookup: {
+                            from: 'accounts',
+                            localField: 'account',
+                            foreignField: '_id',
+                            as: 'account'
+                        }
+                    },
+                    {
+                        $unwind: '$account'
+                    },
+                    {
+                        $match: { 'account.status': status }
+                    },
+                    {
+                        $skip: (page - 1) * limit
+                    },
+                    {
+                        $limit: limit
+                    }
+                ]).exec();
+            }
+            else {
+                totalResult = await Restaurant.aggregate([
+                    {
+                        $lookup: {
+                            from: 'accounts',
+                            localField: 'account',
+                            foreignField: '_id',
+                            as: 'account'
+                        }
+                    },
+                    {
+                        $unwind: '$account'
+                    }
+                ]).exec();
+
+                restaurants = await Restaurant.aggregate([
+                    {
+                        $lookup: {
+                            from: 'accounts',
+                            localField: 'account',
+                            foreignField: '_id',
+                            as: 'account'
+                        }
+                    },
+                    {
+                        $unwind: '$account'
+                    },
+                    {
+                        $skip: (page - 1) * limit
+                    },
+                    {
+                        $limit: limit
+                    }
+                ]).exec();
+            }
+            totalResult = totalResult.length;
+            const totalPage = Math.ceil(totalResult / limit);
+            const pagination = {
+                totalResult,
+                totalPage,
+                currentPage: page,
+            }
+            const response = restaurants.map(restaurant => {
+                return {
+                    restaurant,
+                    account: restaurant.account,
+                };
+            }
+            );
+            return res.status(200).json({
+                success: true,
+                restaurants: response,
+                pagination
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
+    getAllShipper: async (req, res) => {
+        try {
+            let { status } = req.query;
+            let shippers = null;
+            let totalResult = 0;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            if (status) {
+                totalResult = await Shipper.aggregate([
+                    {
+                        $lookup: {
+                            from: 'accounts',
+                            localField: 'account',
+                            foreignField: '_id',
+                            as: 'account'
+                        }
+                    },
+                    {
+                        $unwind: '$account'
+                    },
+                    {
+                        $match: { 'account.status': status }
+                    },
+                    {
+                        $skip: (page - 1) * limit
+                    },
+                    {
+                        $limit: limit
+                    }
+                ]).exec();
+
+                shippers = await Shipper.aggregate([
                     {
                         $lookup: {
                             from: 'accounts',
@@ -28,7 +164,131 @@ const dashboardController = {
                 ]).exec();
             }
             else {
-                restaurants = await Restaurant.aggregate([
+                totalResult = await Shipper.aggregate([
+                    {
+                        $lookup: {
+                            from: 'accounts',
+                            localField: 'account',
+                            foreignField: '_id',
+                            as: 'account'
+                        }
+                    },
+                    {
+                        $unwind: '$account'
+                    }
+                ]).exec();
+
+                shippers = await Shipper.aggregate([
+                    {
+                        $lookup: {
+                            from: 'accounts',
+                            localField: 'account',
+                            foreignField: '_id',
+                            as: 'account'
+                        }
+                    },
+                    {
+                        $unwind: '$account'
+                    },
+                    {
+                        $skip: (page - 1) * limit
+                    },
+                    {
+                        $limit: limit
+                    }
+                ]).exec();
+            }
+
+            const response = shippers.map(shipper => {
+                return {
+                    shipper,
+                    account: shipper.account
+                };
+
+            });
+
+            totalResult = totalResult.length;
+            const totalPage = Math.ceil(totalResult / limit);
+            const pagination = {
+                totalResult,
+                totalPage,
+                currentPage: page,
+            }
+            return res.status(200).json({
+                success: true,
+                shippers: response,
+                pagination
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+    getAllUsers: async (req, res) => {
+        try {
+            let { status } = req.query;
+            let users = null;
+            let totalResult = 0;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+
+            if (status) {
+                totalResult = await User.aggregate([
+                    {
+                        $lookup: {
+                            from: 'accounts',
+                            localField: 'account',
+                            foreignField: '_id',
+                            as: 'account'
+                        }
+                    },
+                    {
+                        $unwind: '$account'
+                    },
+                    {
+                        $match: { 'account.status': status }
+                    }
+                ]).exec();
+                users = await User.aggregate([
+                    {
+                        $lookup: {
+                            from: 'accounts',
+                            localField: 'account',
+                            foreignField: '_id',
+                            as: 'account'
+                        }
+                    },
+                    {
+                        $unwind: '$account'
+                    },
+                    {
+                        $match: { 'account.status': status }
+                    },
+                    {
+                        $skip: (page - 1) * limit
+                    },
+                    {
+                        $limit: limit
+                    }
+                ]).exec();
+            }
+            else {
+                totalResult = await User.aggregate([
+                    {
+                        $lookup: {
+                            from: 'accounts',
+                            localField: 'account',
+                            foreignField: '_id',
+                            as: 'account'
+                        }
+                    },
+                    {
+                        $unwind: '$account'
+                    }
+                ]).exec();
+                users = await User.aggregate([
                     {
                         $lookup: {
                             from: 'accounts',
@@ -43,16 +303,23 @@ const dashboardController = {
 
                 ]).exec();
             }
-            const response = restaurants.map(restaurant => {
-                return {
-                    restaurant,
-                    account: restaurant.account
-                };
+            totalResult = totalResult.length;
+            const totalPage = Math.ceil(totalResult / limit);
+            const pagination = {
+                totalResult,
+                totalPage,
+                currentPage: page,
             }
-            );
+            const response = users.map(user => {
+                return {
+                    user,
+                    account: user.account,
+                };
+            });
             return res.status(200).json({
                 success: true,
-                response
+                users: response,
+                pagination
             });
         } catch (error) {
             return res.status(500).json({
@@ -97,19 +364,211 @@ const dashboardController = {
             });
         }
     },
-    
+
+    approveShipper: async (req, res) => {
+        try {
+            const shipper = await Shipper.findById(req.params.id);
+            if (!shipper) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Shipper not found',
+                });
+            }
+            const account = await Account.findById(shipper.account);
+            if (!account) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Account not found',
+                });
+            }
+
+            account.status = 'active';
+            await account.save();
+
+            shipper.status = 'online';
+            await shipper.save();
+            const { password, ...accountWithoutPassword } = account._doc;
+            return res.status(200).json({
+                success: true,
+                message: 'Approve shipper successfully',
+                shipper,
+                account: accountWithoutPassword
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
+
+    banUser: async (req, res) => {
+        try {
+            const role = req.query.role;
+            let restaurant = null;
+            let user = null;
+            let account = null;
+            let shipper = null;
+            if (role === 'restaurant') {
+                restaurant = await restaurant.findById(req.params.id);
+                if (!restaurant) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Restaurant not found',
+                    });
+                }
+                account = await Account.findById(restaurant.account);
+                if (!account) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Account not found',
+                    });
+                }
+                account.status = 'deleted';
+                await account.save();
+                restaurant.status = 'deleted';
+                await restaurant.save();
+                const { password, ...accountWithoutPassword } = account._doc;
+                return res.status(200).json({
+                    success: true,
+                    message: 'Ban restaurant successfully',
+                    restaurant,
+                    account: accountWithoutPassword
+                });
+            }
+            else if (role === 'user') {
+                user = await User.findById(req.params.id);
+                if (!user) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'User not found',
+                    });
+                }
+                account = await Account.findById(user.account);
+                if (!account) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Account not found',
+                    });
+                }
+                account.status = 'deleted';
+                await account.save();
+                user.status = 'deleted';
+                await user.save();
+                const { password, ...accountWithoutPassword } = account._doc;
+                return res.status(200).json({
+                    success: true,
+                    message: 'Ban user successfully',
+                    user,
+                    account: accountWithoutPassword
+                });
+            }
+            else if (role === 'shipper') {
+                shipper = await Shipper.findById(req.params.id);
+                if (!shipper) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Shipper not found',
+                    });
+                }
+                account = await Account.findById(shipper.account);
+                if (!account) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Account not found',
+                    });
+                }
+                account.status = 'deleted';
+                await account.save();
+                shipper.status = 'deleted';
+                await shipper.save();
+                const { password, ...accountWithoutPassword } = account._doc;
+                return res.status(200).json({
+                    success: true,
+                    message: 'Ban shipper successfully',
+                    shipper,
+                    account: accountWithoutPassword
+                });
+            }
+            else {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Role not found',
+                });
+            }
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
     getRestaurantById: async (req, res) => {
         try {
             const restaurant = await Restaurant.findById(req.params.id);
-            if(restaurant){
+            const account = await Account.findById(restaurant.account);
+            const { password, ...accountWithoutPassword } = account._doc;
+            if (restaurant) {
                 return res.status(200).json({
                     success: true,
-                    restaurant
+                    restaurant,
+                    account: accountWithoutPassword
                 });
             }
             return res.status(404).json({
                 success: false,
                 message: 'Restaurant not found'
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
+    getUserById: async (req, res) => {
+        try {
+            const user = await User.findById(req.params.id);
+            const account = await Account.findById(user.account);
+            const { password, ...accountWithoutPassword } = account._doc;
+            if (user) {
+                return res.status(200).json({
+                    success: true,
+                    user,
+                    account: accountWithoutPassword
+                });
+            }
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    },
+
+    getShipperById: async (req, res) => {
+        try {
+            const shipper = await Shipper.findById(req.params.id);
+            const account = await Account.findById(shipper.account);
+            const { password, ...accountWithoutPassword } = account._doc;
+            if (shipper) {
+                return res.status(200).json({
+                    success: true,
+                    shipper,
+                    account: accountWithoutPassword
+                });
+            }
+            return res.status(404).json({
+                success: false,
+                message: 'Shipper not found'
+
             });
         } catch (error) {
             return res.status(500).json({
@@ -155,69 +614,14 @@ const dashboardController = {
             });
         }
     },
- 
-    getAllUsers: async (req, res) => {
-        try {
-            let { status } = req.query;
-            let users = null;
-            if (status) {
-                users = await User.aggregate([
-                    {
-                        $lookup: {
-                            from: 'accounts',
-                            localField: 'account',
-                            foreignField: '_id',
-                            as: 'account'
-                        }
-                    },
-                    {
-                        $unwind: '$account'
-                    },
-                    {
-                        $match: { 'account.status': status }
-                    }
-                ]).exec();
-            }
-            else {
-                users = await User.aggregate([
-                    {
-                        $lookup: {
-                            from: 'accounts',
-                            localField: 'account',
-                            foreignField: '_id',
-                            as: 'account'
-                        }
-                    },
-                    {
-                        $unwind: '$account'
-                    }
 
-                ]).exec();
-            }
 
-            const response = users.map(user => {
-                return {
-                    user,
-                    account: user.account
-                };
-            });
-            return res.status(200).json({
-                success: true,
-                response
-            });
-        } catch (error) {
-            return res.status(500).json({
-                success: false,
-                message: error.message
-            });
-        }
-    },
 
     ///role admin
     findRestaurantByName: async (req, res) => {
         try {
         } catch (error) {
-            
+
         }
     }
 }
