@@ -411,7 +411,7 @@ const dashboardController = {
             let account = null;
             let shipper = null;
             if (role === 'restaurant') {
-                restaurant = await restaurant.findById(req.params.id);
+                restaurant = await Restaurant.findById(req.params.id);
                 if (!restaurant) {
                     return res.status(404).json({
                         success: false,
