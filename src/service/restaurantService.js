@@ -13,8 +13,7 @@ const restaurantService = {
             const currentTime = moment().tz('Asia/Ho_Chi_Minh');
             const openTime = moment(open, 'HH:mm');
             const closeTime = moment(close, 'HH:mm');
-            console.log(currentTime, openTime, closeTime);
-            const isWithinOpeningHours = currentTime.isSameOrAfter(openTime) && currentTime.isBefore(closeTime);
+            const isWithinOpeningHours = currentTime.isSameOrAfter(openTime, 'minute') && currentTime.isBefore(closeTime, 'minute');
             return isWithinOpeningHours;
         } catch (error) {
             console.error(error);
@@ -28,12 +27,11 @@ const restaurantService = {
             for (const restaurant of restaurants) {
                 const { open, close } = restaurant.openingHours;
                 const isOpening = restaurantService.checkOpeningHours(open, close);
-                console.log(isOpening);
                 if (restaurant.status !== 'pending' && restaurant.status !== 'deleted') {
                     if (isOpening && restaurant.status.toString() === 'close') {
                         restaurant.status = 'open';
                         await restaurant.save();
-                    } else if(!isOpening && restaurant.status.toString() === 'open'){
+                    } else if (!isOpening && restaurant.status.toString() === 'open') {
                         restaurant.status = 'close';
                         await restaurant.save();
                     }
