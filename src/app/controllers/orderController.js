@@ -672,12 +672,32 @@ const orderController = {
                 {
                     $limit: limit
                 }
+                
             ]);
             if (order) {
+                const orderWithRestaurant = await Promise.all(order.map(async (order) => {
+                    const restaurant = await Restaurant.findById(order.restaurant);
+                    return {
+                        _id: order._id,
+                        user: order.user,
+                        address: order.address,
+                        status: order.status,
+                        orderItems: order.orderItems,
+                        deliveryFee: order.deliveryFee,
+                        deliveryTime: order.deliveryTime,
+                        total: order.total,
+                        note: order.note,
+                        restaurant: restaurant,
+                        reason: order.reason,
+                        distance: order.dist.calculated,
+                        createdAt: order.createdAt,
+                        updatedAt: order.updatedAt
+                    };
+                }));
                 return res.status(200).json({
                     success: true,
                     message: 'Get order successfully',
-                    order: order,
+                    orders: orderWithRestaurant,
                     pagination
                 });
             }
@@ -737,6 +757,7 @@ const orderController = {
             if (order) {
                 const restaurant = await Restaurant.findById(order.restaurant);
                 const user = await User.findById(order.user);
+                const distance = geolib.getDistance(order.restaurantLocation.coordinates, order.userLocation.coordinates);
                 const shipper = await Shipper.findById(order.shipper);
                 const orderInfor = {
                     address: order.address,
@@ -751,6 +772,7 @@ const orderController = {
                     user: user,
                     restaurant: restaurant,
                     shipper: shipper,
+                    distance
 
                 }
                 return res.status(200).json({
