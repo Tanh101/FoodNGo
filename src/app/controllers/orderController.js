@@ -570,8 +570,7 @@ const orderController = {
                         _id: 1
                     })
                     .skip((page - 1) * limit)
-                    .limit(limit)
-                    .populate('user');
+                    .limit(limit);
             } else {
                 orders = await Order.find({ shipper: shipperId })
                     .sort({
@@ -579,8 +578,7 @@ const orderController = {
                         _id: 1
                     })
                     .skip((page - 1) * limit)
-                    .limit(limit)
-                    .populate('user');
+                    .limit(limit);
             }
             if (orders) {
                 totalResult = orders.length;
@@ -590,10 +588,32 @@ const orderController = {
                     totalResult,
                     totalPage
                 }
+                const orderWithRestaurant = await Promise.all(orders.map(async (order) => {
+                    const restaurant = await Restaurant.findById(order.restaurant);
+                    return {
+                        _id: order._id,
+                        user: order.user,
+                        userLocation: order.userLocation,
+                        address: order.address,
+                        paymentMethod: order.paymentMethod,
+                        status: order.status,
+                        paymentStatus: order.paymentStatus,
+                        orderItems: order.orderItems,
+                        deliveryFee: order.deliveryFee,
+                        deliveryTime: order.deliveryTime,
+                        total: order.total,
+                        note: order.note,
+                        restaurant: restaurant,
+                        restaurantLocation: order.restaurantLocation,
+                        reason: order.reason,
+                        createdAt: order.createdAt,
+                        updatedAt: order.updatedAt
+                    };
+                }));
                 return res.status(200).json({
                     success: true,
                     message: 'Get order successfully',
-                    orders,
+                    orders: orderWithRestaurant,
                     pagination
                 });
             }
