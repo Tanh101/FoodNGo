@@ -21,6 +21,8 @@ router.patch('/:id/shipper', auth.verifyToken, auth.checkRole('shipper'), orderC
 
 router.post('/:id/shipper', auth.verifyToken, auth.checkRole('shipper'), orderController.signOrderByShipper);
 
+router.get('/current', auth.verifyToken, auth.checkRole('shipper'), orderController.getCurrentOrderByShipper);
+
 router.patch('/:id/restaurant', auth.verifyToken, auth.checkRole('restaurant'), orderController.updateStatusOrderByRestaurant);
 
 

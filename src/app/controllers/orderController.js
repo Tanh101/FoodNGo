@@ -658,6 +658,7 @@ const orderController = {
                 },
                 {
                     $match: {
+                        shipper: null,
                         status: { $in: ['preparing', 'ready'] }
                     }
                 },
@@ -672,7 +673,7 @@ const orderController = {
                 {
                     $limit: limit
                 }
-                
+
             ]);
             if (order) {
                 const orderWithRestaurant = await Promise.all(order.map(async (order) => {
@@ -792,6 +793,76 @@ const orderController = {
                 message: error.message
             });
 
+        }
+    },
+
+    getCurrentOrderByShipper: async (req, res) => {
+        try {
+            const shipperId = req.user.userId;
+            const status = req.query.status;
+            let orders = [];
+            const page = req.query.page || 1;
+            const limit = req.query.limit || ORDER_ITEM_PER_PAGE;
+            let totalResult = 0;
+            orders = await Order.find({
+                shipper: shipperId,
+                status: {
+                    $in: ['preparing', 'ready', 'delivering']
+                }
+            })
+                .sort({
+                    createAt: -1,
+                    _id: 1
+                })
+                .skip((page - 1) * limit)
+                .limit(limit);
+            if (orders) {
+                totalResult = orders.length;
+                const totalPage = Math.ceil(totalResult / limit);
+                const pagination = {
+                    page,
+                    totalResult,
+                    totalPage
+                }
+                const orderWithRestaurant = await Promise.all(orders.map(async (order) => {
+                    const restaurant = await Restaurant.findById(order.restaurant);
+                    return {
+                        _id: order._id,
+                        user: order.user,
+                        userLocation: order.userLocation,
+                        address: order.address,
+                        paymentMethod: order.paymentMethod,
+                        status: order.status,
+                        paymentStatus: order.paymentStatus,
+                        orderItems: order.orderItems,
+                        deliveryFee: order.deliveryFee,
+                        deliveryTime: order.deliveryTime,
+                        total: order.total,
+                        note: order.note,
+                        restaurant: restaurant,
+                        restaurantLocation: order.restaurantLocation,
+                        reason: order.reason,
+                        createdAt: order.createdAt,
+                        updatedAt: order.updatedAt
+                    };
+                }));
+                return res.status(200).json({
+                    success: true,
+                    message: 'Get order successfully',
+                    orders: orderWithRestaurant,
+                    pagination
+                });
+            }
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
         }
     }
 
