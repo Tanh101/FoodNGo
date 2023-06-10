@@ -13,7 +13,6 @@ const restaurantService = {
             const currentTime = moment().tz('Asia/Ho_Chi_Minh');
             const openTime = moment(open, 'HH:mm');
             const closeTime = moment(close, 'HH:mm');
-            console.log(currentTime, openTime, closeTime);
             const isWithinOpeningHours = currentTime.isSameOrAfter(openTime) && currentTime.isBefore(closeTime);
             return isWithinOpeningHours;
         } catch (error) {
