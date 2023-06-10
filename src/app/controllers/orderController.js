@@ -268,8 +268,8 @@ const orderController = {
         try {
             const status = req.query.status;
             const orderId = req.params.id;
-            const deliveryId = req.user.userId;
-            const order = await Order.findById(orderId);
+            const shipperId = req.user.userId;
+            const order = await Order.findOne({shipper: shipperId, _id: orderId});
             if (order) {
                 if (order.status !== ORDER_STATUS_READY && order.status !== ORDER_STATUS_PREPARING
                     && order.status !== ORDER_STATUS_DELIVERING) {
@@ -278,10 +278,9 @@ const orderController = {
                         message: 'Order is not ready'
                     });
                 }
-                if (status === 'delivering' && order.shipper === null) {
+                if (status === 'delivering' && order.shipper.toString() === shipperId.toString()) {
                     order.status = ORDER_STATUS_DELIVERING;
-                    order.shipper = deliveryId;
-                } else if (status === 'delivered' && order.shipper.toString() === deliveryId.toString()) {
+                } else if (status === 'delivered' && order.shipper.toString() === shipperId.toString()) {
                     order.status = ORDER_STATUS_DELIVERED;
                     order.paymentStatus = 'paid';
                 } else if (status === 'refused') {
@@ -659,6 +658,43 @@ const orderController = {
                 success: false,
                 message: error.message
             });
+        }
+    },
+
+    signOrderByShipper: async (req, res) => {
+        try {
+            const orderId = req.params.id;
+            const order = await Order.findById(orderId);
+            if (order) {
+                if (order.status == 'ready' || order.status == 'preparing') {
+                    if(order.shipper){
+                        return res.status(403).json({
+                            success: false,
+                            message: 'Order has been received by someone else'
+                        });
+                    }
+                    order.shipper = req.user.userId;
+                    await order.save();
+                    return res.status(200).json({
+                        success: true,
+                        message: 'Sign to order successfully'
+                    })
+                } else {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Order is not ready'
+                    })
+                }
+            }
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            })
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            })
         }
     },
 
