@@ -10,7 +10,7 @@ const constants = {
     ORDER_STATUS_DELIVERED: 'delivered',
     ORDER_STATUS_READY: 'ready',
     ORDER_STATUS_PENDING: 'pending',
-    ORDER_STATUS_CANCELLED: 'cancelled',
+    ORDER_STATUS_CANCELED: 'canceled',
     ORDER_STATUS_REFUSE : 'refused',
     ORDER_PAYMENT_STATUS_UNPAID: 'unpaid',
     ORDER_ITEM_PER_PAGE: 10,

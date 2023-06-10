@@ -15,7 +15,7 @@ const {
     ORDER_ITEM_PER_PAGE,
     ORDER_STATUS_READY,
     ORDER_STATUS_REFUSE,
-    ORDER_STATUS_CANCELLED
+    ORDER_STATUS_CANCELED
 } = require('../../utils/constants');
 const Product = require('../models/Product');
 const Restaurant = require('../models/Restaurant');
@@ -325,7 +325,7 @@ const orderController = {
         try {
             const orderId = req.params.id;
             const userId = req.user.userId;
-            const status = ORDER_STATUS_CANCELLED;
+            const status = ORDER_STATUS_CANCELED;
             const order = await Order.findById(orderId);
             if (order && order.user.toString() === userId.toString()) {
                 if (order.status === 'pending') {
@@ -335,7 +335,7 @@ const orderController = {
                         await order.save();
                         return res.status(200).json({
                             success: true,
-                            message: 'Order cancelled successfully',
+                            message: 'Order canceled successfully',
                             order: order
                         });
                     }
@@ -477,7 +477,6 @@ const orderController = {
                 totalResult,
                 totalPage
             }
-            const statusOrder = ['pending', 'preparing', 'ready', 'delivering', 'delivered', 'refused', 'cancelled'];
             if (status) {
                 orders = await Order.find({ user: userId, status: status })
                     .sort({
