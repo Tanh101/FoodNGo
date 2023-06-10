@@ -807,7 +807,7 @@ const orderController = {
             orders = await Order.find({
                 shipper: shipperId,
                 status: {
-                    $in: ['preparing', 'ready', 'delivering']
+                    $in: ['preparing', 'ready', 'delivering', 'delivered']
                 }
             })
                 .sort({
