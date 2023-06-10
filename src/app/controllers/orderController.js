@@ -558,27 +558,22 @@ const orderController = {
     getOrderByShipper: async (req, res) => {
         try {
             const shipperId = req.user.userId;
-            const orderId = req.params.orderId;
             const status = req.query.status;
             let orders = [];
             const page = req.query.page || 1;
             const limit = req.query.limit || ORDER_ITEM_PER_PAGE;
             let totalResult = 0;
-            if (!status) {
-                totalResult = await Order.countDocuments({ _id: orderId, shipper: shipperId });
-            } else {
-                totalResult = await Order.countDocuments({ _id: orderId, shipper: shipperId, status: status });
-            }
             if (status) {
-                orders = await Order.find({ _id: orderId, shipper: shipperId, status: status })
+                orders = await Order.find({ shipper: shipperId, status: status })
                     .sort({
                         createAt: -1,
                         _id: 1
                     })
                     .skip((page - 1) * limit)
-                    .limit(limit);
+                    .limit(limit)
+                    .populate('user');
             } else {
-                orders = await Order.find({ _id: orderId, shipper: shipperId })
+                orders = await Order.find({ shipper: shipperId })
                     .sort({
                         createAt: -1,
                         _id: 1
@@ -587,7 +582,21 @@ const orderController = {
                     .limit(limit)
                     .populate('user');
             }
-            forEach
+            if (orders) {
+                totalResult = orders.length;
+                const totalPage = Math.ceil(totalResult / limit);
+                const pagination = {
+                    page,
+                    totalResult,
+                    totalPage
+                }
+                return res.status(200).json({
+                    success: true,
+                    message: 'Get order successfully',
+                    orders,
+                    pagination
+                });
+            }
         } catch (error) {
             return res.status(500).json({
                 success: false,

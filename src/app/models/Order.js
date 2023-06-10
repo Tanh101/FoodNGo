@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const OrderSchema = new Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
+        ref: 'users',
         required: true
     },
     userLocation: {
@@ -137,5 +137,6 @@ const OrderSchema = new Schema({
 }, { timestamps: true });
 OrderSchema.index({ userLocation: "2dsphere" });
 OrderSchema.index({ restaurantLocation: "2dsphere" });
+OrderSchema.index({ createdAt: 1 });
 
 module.exports = mongoose.model('order', OrderSchema);
