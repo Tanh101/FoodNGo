@@ -11,8 +11,6 @@ const http = require('http');
 const socketIO = require('socket.io');
 const app = express();
 const server = http.Server(app);
-const io = socketIO(server);
-
 
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
@@ -76,13 +74,6 @@ app.use('/api/shipper', shipperRouter);
 
 app.use('/api/restaurant-dashboard', restaurantDashboardRouter);
 //START SERVER
-
-io.onconnection = (socket) => {
-  console.log('a user connected');
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
-};
 
 server.listen(process.env.PORT || 3306, () => {
   console.log(`Server is running on port ${process.env.PORT}`);

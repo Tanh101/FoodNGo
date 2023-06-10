@@ -13,6 +13,7 @@ const restaurantService = {
             const currentTime = moment().tz('Asia/Ho_Chi_Minh');
             const openTime = moment(open, 'HH:mm');
             const closeTime = moment(close, 'HH:mm');
+            console.log(currentTime, openTime, closeTime);
             const isWithinOpeningHours = currentTime.isSameOrAfter(openTime) && currentTime.isBefore(closeTime);
             return isWithinOpeningHours;
         } catch (error) {
@@ -21,20 +22,21 @@ const restaurantService = {
         }
     },
 
-
     updateOpeningStatus: async () => {
         try {
             const restaurants = await Restaurant.find();
             for (const restaurant of restaurants) {
                 const { open, close } = restaurant.openingHours;
                 const isOpening = restaurantService.checkOpeningHours(open, close);
+                console.log(isOpening);
                 if (restaurant.status !== 'pending' && restaurant.status !== 'deleted') {
-                    if (isOpening) {
+                    if (isOpening && restaurant.status.toString() === 'close') {
                         restaurant.status = 'open';
-                    } else {
+                        await restaurant.save();
+                    } else if(!isOpening && restaurant.status.toString() === 'open'){
                         restaurant.status = 'close';
+                        await restaurant.save();
                     }
-                    await restaurant.save();
                 }
             }
             return true;
@@ -181,12 +183,12 @@ const restaurantService = {
                         $skip: (page - 1) * limit
                     },
                     {
-                        $limit: limit
-                    },
-                    {
                         $match: {
                             status: { $in: ['open', 'close'] }
                         }
+                    },
+                    {
+                        $limit: limit
                     }
                 ]);
             }

@@ -1,6 +1,7 @@
 const express = require('express');
 const geolib = require('geolib');
 const Order = require('../models/Order');
+
 const {
     DELIVERY_BASE_FEE,
     DELIVERY_FEE_PER_KM,
@@ -14,7 +15,7 @@ const {
     ORDER_ITEM_PER_PAGE,
     ORDER_STATUS_READY,
     ORDER_STATUS_REFUSE,
-    ORDER_STATUS_CANCELLED
+    ORDER_STATUS_CANCELED
 } = require('../../utils/constants');
 const Product = require('../models/Product');
 const Restaurant = require('../models/Restaurant');
@@ -268,20 +269,19 @@ const orderController = {
         try {
             const status = req.query.status;
             const orderId = req.params.id;
-            const deliveryId = req.user.userId;
-            const order = await Order.findById(orderId);
+            const shipperId = req.user.userId;
+            const order = await Order.findOne({ shipper: shipperId, _id: orderId });
             if (order) {
-                if (order.status !== ORDER_STATUS_READY && order.status !== ORDER_STATUS_PREPARING
+                if (order.status !== ORDER_STATUS_READY
                     && order.status !== ORDER_STATUS_DELIVERING) {
                     return res.status(400).json({
                         success: false,
                         message: 'Order is not ready'
                     });
                 }
-                if (status === 'delivering' && order.shipper === null) {
+                if (status === 'delivering' && order.shipper.toString() === shipperId.toString()) {
                     order.status = ORDER_STATUS_DELIVERING;
-                    order.shipper = deliveryId;
-                } else if (status === 'delivered' && order.shipper.toString() === deliveryId.toString()) {
+                } else if (status === 'delivered' && order.shipper.toString() === shipperId.toString()) {
                     order.status = ORDER_STATUS_DELIVERED;
                     order.paymentStatus = 'paid';
                 } else if (status === 'refused') {
@@ -325,7 +325,7 @@ const orderController = {
         try {
             const orderId = req.params.id;
             const userId = req.user.userId;
-            const status = ORDER_STATUS_CANCELLED;
+            const status = ORDER_STATUS_CANCELED;
             const order = await Order.findById(orderId);
             if (order && order.user.toString() === userId.toString()) {
                 if (order.status === 'pending') {
@@ -335,7 +335,7 @@ const orderController = {
                         await order.save();
                         return res.status(200).json({
                             success: true,
-                            message: 'Order cancelled successfully',
+                            message: 'Order canceled successfully',
                             order: order
                         });
                     }
@@ -477,7 +477,6 @@ const orderController = {
                 totalResult,
                 totalPage
             }
-            const statusOrder = ['pending', 'preparing', 'ready', 'delivering', 'delivered', 'refused', 'cancelled'];
             if (status) {
                 orders = await Order.find({ user: userId, status: status })
                     .sort({
@@ -558,19 +557,13 @@ const orderController = {
     getOrderByShipper: async (req, res) => {
         try {
             const shipperId = req.user.userId;
-            const orderId = req.params.orderId;
             const status = req.query.status;
             let orders = [];
             const page = req.query.page || 1;
             const limit = req.query.limit || ORDER_ITEM_PER_PAGE;
             let totalResult = 0;
-            if (!status) {
-                totalResult = await Order.countDocuments({ _id: orderId, shipper: shipperId });
-            } else {
-                totalResult = await Order.countDocuments({ _id: orderId, shipper: shipperId, status: status });
-            }
             if (status) {
-                orders = await Order.find({ _id: orderId, shipper: shipperId, status: status })
+                orders = await Order.find({ shipper: shipperId, status: status })
                     .sort({
                         createAt: -1,
                         _id: 1
@@ -578,13 +571,50 @@ const orderController = {
                     .skip((page - 1) * limit)
                     .limit(limit);
             } else {
-                orders = await Order.find({ _id: orderId, shipper: shipperId })
+                orders = await Order.find({ shipper: shipperId })
                     .sort({
                         createAt: -1,
                         _id: 1
                     })
                     .skip((page - 1) * limit)
                     .limit(limit);
+            }
+            if (orders) {
+                totalResult = orders.length;
+                const totalPage = Math.ceil(totalResult / limit);
+                const pagination = {
+                    page,
+                    totalResult,
+                    totalPage
+                }
+                const orderWithRestaurant = await Promise.all(orders.map(async (order) => {
+                    const restaurant = await Restaurant.findById(order.restaurant);
+                    return {
+                        _id: order._id,
+                        user: order.user,
+                        userLocation: order.userLocation,
+                        address: order.address,
+                        paymentMethod: order.paymentMethod,
+                        status: order.status,
+                        paymentStatus: order.paymentStatus,
+                        orderItems: order.orderItems,
+                        deliveryFee: order.deliveryFee,
+                        deliveryTime: order.deliveryTime,
+                        total: order.total,
+                        note: order.note,
+                        restaurant: restaurant,
+                        restaurantLocation: order.restaurantLocation,
+                        reason: order.reason,
+                        createdAt: order.createdAt,
+                        updatedAt: order.updatedAt
+                    };
+                }));
+                return res.status(200).json({
+                    success: true,
+                    message: 'Get order successfully',
+                    orders: orderWithRestaurant,
+                    pagination
+                });
             }
         } catch (error) {
             return res.status(500).json({
@@ -627,6 +657,7 @@ const orderController = {
                 },
                 {
                     $match: {
+                        shipper: null,
                         status: { $in: ['preparing', 'ready'] }
                     }
                 },
@@ -641,12 +672,32 @@ const orderController = {
                 {
                     $limit: limit
                 }
+
             ]);
             if (order) {
+                const orderWithRestaurant = await Promise.all(order.map(async (order) => {
+                    const restaurant = await Restaurant.findById(order.restaurant);
+                    return {
+                        _id: order._id,
+                        user: order.user,
+                        address: order.address,
+                        status: order.status,
+                        orderItems: order.orderItems,
+                        deliveryFee: order.deliveryFee,
+                        deliveryTime: order.deliveryTime,
+                        total: order.total,
+                        note: order.note,
+                        restaurant: restaurant,
+                        reason: order.reason,
+                        distance: order.dist.calculated,
+                        createdAt: order.createdAt,
+                        updatedAt: order.updatedAt
+                    };
+                }));
                 return res.status(200).json({
                     success: true,
                     message: 'Get order successfully',
-                    order: order,
+                    orders: orderWithRestaurant,
                     pagination
                 });
             }
@@ -662,6 +713,43 @@ const orderController = {
         }
     },
 
+    signOrderByShipper: async (req, res) => {
+        try {
+            const orderId = req.params.id;
+            const order = await Order.findById(orderId);
+            if (order) {
+                if (order.status == 'ready' || order.status == 'preparing') {
+                    if (order.shipper) {
+                        return res.status(403).json({
+                            success: false,
+                            message: 'Order has been received by someone else'
+                        });
+                    }
+                    order.shipper = req.user.userId;
+                    await order.save();
+                    return res.status(200).json({
+                        success: true,
+                        message: 'Sign to order successfully'
+                    })
+                } else {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Order is not ready'
+                    })
+                }
+            }
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            })
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            })
+        }
+    },
+
     getOrderDetails: async (req, res) => {
         try {
             const orderId = req.params.id;
@@ -669,9 +757,11 @@ const orderController = {
             if (order) {
                 const restaurant = await Restaurant.findById(order.restaurant);
                 const user = await User.findById(order.user);
+                const distance = geolib.getDistance(order.restaurantLocation.coordinates, order.userLocation.coordinates);
                 const shipper = await Shipper.findById(order.shipper);
                 const orderInfor = {
                     address: order.address,
+                    location: order.userLocation,
                     paymentMethod: order.paymentMethod,
                     status: order.status,
                     paymentStatus: order.paymentStatus,
@@ -683,6 +773,7 @@ const orderController = {
                     user: user,
                     restaurant: restaurant,
                     shipper: shipper,
+                    distance
 
                 }
                 return res.status(200).json({
@@ -701,6 +792,106 @@ const orderController = {
                 message: error.message
             });
 
+        }
+    },
+
+    getCurrentOrderByShipper: async (req, res) => {
+        try {
+            const shipperId = req.user.userId;
+            const status = req.query.status;
+            let orders = [];
+            const page = req.query.page || 1;
+            const limit = req.query.limit || ORDER_ITEM_PER_PAGE;
+            let totalResult = 0;
+            if (status == 'current') {
+                orders = await Order.find({
+                    shipper: shipperId,
+                    status: {
+                        $in: ['preparing', 'ready', 'delivering']
+                    }
+                })
+                    .sort({
+                        createAt: -1,
+                        _id: 1
+                    })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
+
+                totalResult = await Order.countDocuments({
+                    shipper: shipperId,
+                    status: {
+                        $in: ['preparing', 'ready', 'delivering']
+                    }
+                });
+            }
+            else if (status === 'completed') {
+                orders = await Order.find({
+                    shipper: shipperId,
+                    status: {
+                        $in: ['delivered', 'refused']
+                    }
+                })
+                    .sort({
+                        createAt: -1,
+                        _id: 1
+                    })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
+                totalResult = await Order.countDocuments({
+                    shipper: shipperId,
+                    status: {
+                        $in: ['delivered', 'refused']
+                    }
+                });
+            }
+
+            if (orders) {
+                const totalPage = Math.ceil(totalResult / limit);
+                const pagination = {
+                    page,
+                    totalResult,
+                    totalPage
+                }
+                const orderWithRestaurant = await Promise.all(orders.map(async (order) => {
+                    const restaurant = await Restaurant.findById(order.restaurant);
+                    const user = await User.findById(order.user);
+                    return {
+                        _id: order._id,
+                        user: user,
+                        restaurant: restaurant,
+                        userLocation: order.userLocation,
+                        address: order.address,
+                        paymentMethod: order.paymentMethod,
+                        status: order.status,
+                        paymentStatus: order.paymentStatus,
+                        orderItems: order.orderItems,
+                        deliveryFee: order.deliveryFee,
+                        deliveryTime: order.deliveryTime,
+                        total: order.total,
+                        note: order.note,
+                        restaurantLocation: order.restaurantLocation,
+                        reason: order.reason,
+                        createdAt: order.createdAt,
+                        updatedAt: order.updatedAt
+                    };
+                }));
+                return res.status(200).json({
+                    success: true,
+                    message: 'Get order successfully',
+                    orders: orderWithRestaurant,
+                    pagination
+                });
+            }
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found'
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
         }
     }
 

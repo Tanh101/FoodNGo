@@ -8,6 +8,7 @@ const Category = require('../models/Category');
 const { ACCOUNT_STATUS_PENDING, AVERAGE_DELIVERY_SPPED, PREPARING_TIME } = require('../../utils/constants');
 const { getAllProducts } = require('./productController');
 
+
 const restaurantController = {
     getProductsByRestaurantId: async (req, res) => {
         try {
@@ -64,41 +65,34 @@ const restaurantController = {
         let restaurants = null;
         let pagination = null;
         try {
-            const isUpdated = await restaurantService.updateOpeningStatus();
-            if (isUpdated) {
-                const longitude = req.query.longitude;
-                const latitude = req.query.latitude;
+            // const isUpdated = await restaurantService.updateOpeningStatus();
+            const longitude = req.query.longitude;
+            const latitude = req.query.latitude;
 
-                if (longitude && latitude) {
-                    restaurants = await restaurantService.findNearbyRestaurants(req, res);
-                    pagination = await restaurantService.getPagingData(req, res);
-                    if (restaurants && pagination) {
-                        return res.json({
-                            success: true,
-                            message: 'Get all restaurants successfully',
-                            restaurants,
-                            pagination,
-                        });
-                    }
-                    else {
-                        return res.status(404).json({
-                            success: false,
-                            message: 'Restaurant not found',
-                        });
-                    }
-                }
-                else {
-                    restaurants = await Restaurant.find({ status: { $in: ['opne', 'close'] } });
+            if (longitude && latitude) {
+                restaurants = await restaurantService.findNearbyRestaurants(req, res);
+                pagination = await restaurantService.getPagingData(req, res);
+                if (restaurants && pagination) {
                     return res.json({
                         success: true,
                         message: 'Get all restaurants successfully',
-                        restaurants
+                        restaurants,
+                        pagination,
                     });
                 }
-            } else {
-                return res.status(500).json({
-                    success: false,
-                    message: 'Failed to update openingHours status of Restaurants'
+                else {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Restaurant not found',
+                    });
+                }
+            }
+            else {
+                restaurants = await Restaurant.find({ status: { $in: ['opne', 'close'] } });
+                return res.json({
+                    success: true,
+                    message: 'Get all restaurants successfully',
+                    restaurants
                 });
             }
         } catch (error) {
@@ -302,84 +296,29 @@ const restaurantController = {
     //role user
     findRestaurantByName: async (req, res) => {
         try {
-
-            let restaurants = null;
-            const isUpdated = await restaurantService.updateOpeningStatus();
-            if (isUpdated) {
-                const longitude = req.query.longitude;
-                const latitude = req.query.latitude;
-                const page = parseInt(req.query.page) || 1;
-                const limit = parseInt(req.query.limit) || 9;
-                const coordinates = [longitude, latitude].map(parseFloat);
-                const searchKeyword = req.query.name;
-                const regex = new RegExp(searchKeyword, 'i');
-                if (longitude && latitude) {
-                    restaurants = await Restaurant.aggregate([
-                        {
-                            $geoNear: {
-                                near: {
-                                    type: 'Point',
-                                    coordinates
-                                },
-                                key: 'location',
-                                maxDistance: parseFloat(20000),
-                                distanceField: 'dist.calculated',
-                                spherical: true
-                            }
-                        },
-                        {
-                            $match: {
-                                name: { $regex: regex },
-                                status: { $in: ['open', 'close'] }
-                            }
-                        },
-                        {
-                            $sort: {
-                                'dist.calculated': 1
-                            }
-                        },
-                        {
-                            $skip: (page - 1) * limit
-                        },
-                        {
-                            $limit: limit
-                        }
-                    ]);
-                    const totalResult = Object.keys(restaurants).length;
-                    const totalPage = Math.ceil(totalResult / limit);
-                    const pagination = {
-                        totalResult,
-                        currentPage: page,
-                        totalPage
-                    }
-
-                    const restaurantWithDeliveryTime = restaurants.map(restaurant => {
-                        const distance = restaurant.dist.calculated;
-                        const deliveryTime = distance ? (distance * 60 / (1000 * AVERAGE_DELIVERY_SPPED) + PREPARING_TIME) : 0;
-
-                        return {
-                            ...restaurant,
-                            deliveryTime,
-                            distance
-                        };
-                    });
-                    return res.json({
-                        success: true,
-                        message: 'Get all restaurants successfully',
-                        restaurants: restaurantWithDeliveryTime,
-                        pagination,
-                    });
-                }
-                const tmp = await Restaurant.find({ name: { $regex: regex }, status: { $in: ['open', 'close'] } });
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 5;
+            const searchKeyword = req.query.name;
+            // const regex = new RegExp('^' + searchKeyword + '$', 'i');
+            const regex = new RegExp(searchKeyword, 'i');
+            const restaurants = await Restaurant.find({
+                name: { $regex: regex },
+                status: { $in: ['open', 'close'] }
+            })
+                .skip((page - 1) * limit)
+                .limit(limit)
+                .select('name _id');
+            if (restaurants) {
                 return res.json({
                     success: true,
                     message: 'Get all restaurants successfully',
-                    restaurants: tmp,
+                    restaurants
                 });
+
             } else {
                 return res.status(500).json({
                     success: false,
-                    message: 'Failed to update openingHours status of Restaurants'
+                    message: 'Failed to get all restaurants'
                 });
             }
         } catch (error) {
