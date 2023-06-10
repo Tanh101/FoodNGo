@@ -45,7 +45,7 @@ const OrderSchema = new Schema({
     },
     restaurant: {
         type: Schema.Types.ObjectId,
-        ref: 'restaurant',
+        ref: 'restaurants',
         required: true
     },
     restaurantLocation: {
@@ -139,4 +139,4 @@ OrderSchema.index({ userLocation: "2dsphere" });
 OrderSchema.index({ restaurantLocation: "2dsphere" });
 OrderSchema.index({ createdAt: 1 });
 
-module.exports = mongoose.model('order', OrderSchema);
+module.exports = mongoose.model('orders', OrderSchema);
