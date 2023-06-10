@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 
-const RetstaurantSchema = new mongoose.Schema({
+const RestaurantSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
@@ -56,7 +56,7 @@ const RetstaurantSchema = new mongoose.Schema({
             },
             close: {
                 type: String
-            } 
+            }
         }
     },
     categories: [{
@@ -76,6 +76,12 @@ const RetstaurantSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-
-RetstaurantSchema.index({ location: "2dsphere" });
-module.exports = mongoose.model('restaurant', RetstaurantSchema);
+async function createIndexes() {
+    await Restaurant.createIndexes([
+        { name: 1 },
+        { status: 1 },
+    ]);
+}
+RestaurantSchema.index({ name: 1, status: 1 });
+RestaurantSchema.index({ location: "2dsphere" });
+module.exports = mongoose.model('restaurant', RestaurantSchema);

@@ -181,12 +181,12 @@ const restaurantService = {
                         $skip: (page - 1) * limit
                     },
                     {
-                        $limit: limit
-                    },
-                    {
                         $match: {
                             status: { $in: ['open', 'close'] }
                         }
+                    },
+                    {
+                        $limit: limit
                     }
                 ]);
             }

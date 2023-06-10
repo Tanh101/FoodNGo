@@ -1,6 +1,7 @@
 const express = require('express');
 const geolib = require('geolib');
 const Order = require('../models/Order');
+
 const {
     DELIVERY_BASE_FEE,
     DELIVERY_FEE_PER_KM,
@@ -269,7 +270,7 @@ const orderController = {
             const status = req.query.status;
             const orderId = req.params.id;
             const shipperId = req.user.userId;
-            const order = await Order.findOne({shipper: shipperId, _id: orderId});
+            const order = await Order.findOne({ shipper: shipperId, _id: orderId });
             if (order) {
                 if (order.status !== ORDER_STATUS_READY && order.status !== ORDER_STATUS_PREPARING
                     && order.status !== ORDER_STATUS_DELIVERING) {
@@ -583,8 +584,10 @@ const orderController = {
                         _id: 1
                     })
                     .skip((page - 1) * limit)
-                    .limit(limit);
+                    .limit(limit)
+                    .populate('user');
             }
+            forEach
         } catch (error) {
             return res.status(500).json({
                 success: false,
@@ -667,7 +670,7 @@ const orderController = {
             const order = await Order.findById(orderId);
             if (order) {
                 if (order.status == 'ready' || order.status == 'preparing') {
-                    if(order.shipper){
+                    if (order.shipper) {
                         return res.status(403).json({
                             success: false,
                             message: 'Order has been received by someone else'
