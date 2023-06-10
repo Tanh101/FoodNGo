@@ -32,9 +32,28 @@ const shipperController = {
             console.log(error.message);
             res.status(500).send('Server error');
         }
+    },
+
+    updateShipperInfor: async (req, res) => {
+        try {
+            const id = req.user.userId;
+            const shipper = await Shipper.findById(id);
+            if (!shipper) {
+                return res.status(404).json({
+                    sucess: false,
+                    message: 'Shipper not found'
+                });
+            }
+        } catch (error) {
+            return res.status(500).json({
+                sucess: false,
+                message: 'Server error'
+            });
+
+        }
     }
 
-    
+
 }
 
 module.exports = shipperController;

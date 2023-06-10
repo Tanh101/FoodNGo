@@ -272,7 +272,7 @@ const orderController = {
             const shipperId = req.user.userId;
             const order = await Order.findOne({ shipper: shipperId, _id: orderId });
             if (order) {
-                if (order.status !== ORDER_STATUS_READY && order.status !== ORDER_STATUS_PREPARING
+                if (order.status !== ORDER_STATUS_READY
                     && order.status !== ORDER_STATUS_DELIVERING) {
                     return res.status(400).json({
                         success: false,
@@ -804,20 +804,49 @@ const orderController = {
             const page = req.query.page || 1;
             const limit = req.query.limit || ORDER_ITEM_PER_PAGE;
             let totalResult = 0;
-            orders = await Order.find({
-                shipper: shipperId,
-                status: {
-                    $in: ['preparing', 'ready', 'delivering', 'delivered']
-                }
-            })
-                .sort({
-                    createAt: -1,
-                    _id: 1
+            if (status == 'current') {
+                orders = await Order.find({
+                    shipper: shipperId,
+                    status: {
+                        $in: ['preparing', 'ready', 'delivering']
+                    }
                 })
-                .skip((page - 1) * limit)
-                .limit(limit);
+                    .sort({
+                        createAt: -1,
+                        _id: 1
+                    })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
+
+                totalResult = await Order.countDocuments({
+                    shipper: shipperId,
+                    status: {
+                        $in: ['preparing', 'ready', 'delivering']
+                    }
+                });
+            }
+            else if (status === 'completed') {
+                orders = await Order.find({
+                    shipper: shipperId,
+                    status: {
+                        $in: ['delivered', 'refused']
+                    }
+                })
+                    .sort({
+                        createAt: -1,
+                        _id: 1
+                    })
+                    .skip((page - 1) * limit)
+                    .limit(limit);
+                totalResult = await Order.countDocuments({
+                    shipper: shipperId,
+                    status: {
+                        $in: ['delivered', 'refused']
+                    }
+                });
+            }
+
             if (orders) {
-                totalResult = orders.length;
                 const totalPage = Math.ceil(totalResult / limit);
                 const pagination = {
                     page,
@@ -826,9 +855,11 @@ const orderController = {
                 }
                 const orderWithRestaurant = await Promise.all(orders.map(async (order) => {
                     const restaurant = await Restaurant.findById(order.restaurant);
+                    const user = await User.findById(order.user);
                     return {
                         _id: order._id,
-                        user: order.user,
+                        user: user,
+                        restaurant: restaurant,
                         userLocation: order.userLocation,
                         address: order.address,
                         paymentMethod: order.paymentMethod,
@@ -839,7 +870,6 @@ const orderController = {
                         deliveryTime: order.deliveryTime,
                         total: order.total,
                         note: order.note,
-                        restaurant: restaurant,
                         restaurantLocation: order.restaurantLocation,
                         reason: order.reason,
                         createdAt: order.createdAt,
