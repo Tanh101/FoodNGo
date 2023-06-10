@@ -11,9 +11,12 @@ const restaurantService = {
     checkOpeningHours: (open, close) => {
         try {
             const currentTime = moment().tz('Asia/Ho_Chi_Minh');
-            const openTime = moment(open, 'HH:mm');
-            const closeTime = moment(close, 'HH:mm');
-            const isWithinOpeningHours = currentTime.isSame(openTime, 'minute') || currentTime.isAfter(openTime, 'minute');
+            const date = currentTime.format('YYYY-MM-DD');
+            open = `${date}T${open}`;
+            close = `${date}T${close}`;
+            const openTime = moment(open, 'YYYY-MM-DDTHH:mm');
+            const closeTime = moment(close, 'YYYY-MM-DDTHH:mm');
+            const isWithinOpeningHours = currentTime.isSame(openTime, 'minute') || currentTime.isBetween(openTime, closeTime, 'minute');
             return isWithinOpeningHours;
         } catch (error) {
             console.error(error);

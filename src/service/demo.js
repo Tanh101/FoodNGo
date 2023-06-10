@@ -1,0 +1,10 @@
+const moment = require('moment-timezone');
+open = '01:00';
+close = '22:00';
+const currentTime = moment().tz('Asia/Ho_Chi_Minh');
+const date = currentTime.format('YYYY-MM-DD');
+open = `${date}T${open}`;
+close = `${date}T${close}`;
+const openTime = moment(open, 'YYYY-MM-DDTHH:mm');
+const closeTime = moment(close, 'YYYY-MM-DDTHH:mm');
+const isWithinOpeningHours = currentTime.isSame(openTime, 'minute') || currentTime.isAfter(openTime, 'minute');
