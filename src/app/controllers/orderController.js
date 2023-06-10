@@ -1,6 +1,7 @@
 const express = require('express');
 const geolib = require('geolib');
 const Order = require('../models/Order');
+
 const {
     DELIVERY_BASE_FEE,
     DELIVERY_FEE_PER_KM,
@@ -269,7 +270,7 @@ const orderController = {
             const status = req.query.status;
             const orderId = req.params.id;
             const shipperId = req.user.userId;
-            const order = await Order.findOne({shipper: shipperId, _id: orderId});
+            const order = await Order.findOne({ shipper: shipperId, _id: orderId });
             if (order) {
                 if (order.status !== ORDER_STATUS_READY && order.status !== ORDER_STATUS_PREPARING
                     && order.status !== ORDER_STATUS_DELIVERING) {
@@ -557,33 +558,44 @@ const orderController = {
     getOrderByShipper: async (req, res) => {
         try {
             const shipperId = req.user.userId;
-            const orderId = req.params.orderId;
             const status = req.query.status;
             let orders = [];
             const page = req.query.page || 1;
             const limit = req.query.limit || ORDER_ITEM_PER_PAGE;
             let totalResult = 0;
-            if (!status) {
-                totalResult = await Order.countDocuments({ _id: orderId, shipper: shipperId });
-            } else {
-                totalResult = await Order.countDocuments({ _id: orderId, shipper: shipperId, status: status });
-            }
             if (status) {
-                orders = await Order.find({ _id: orderId, shipper: shipperId, status: status })
+                orders = await Order.find({ shipper: shipperId, status: status })
                     .sort({
                         createAt: -1,
                         _id: 1
                     })
                     .skip((page - 1) * limit)
-                    .limit(limit);
+                    .limit(limit)
+                    .populate('user');
             } else {
-                orders = await Order.find({ _id: orderId, shipper: shipperId })
+                orders = await Order.find({ shipper: shipperId })
                     .sort({
                         createAt: -1,
                         _id: 1
                     })
                     .skip((page - 1) * limit)
-                    .limit(limit);
+                    .limit(limit)
+                    .populate('user');
+            }
+            if (orders) {
+                totalResult = orders.length;
+                const totalPage = Math.ceil(totalResult / limit);
+                const pagination = {
+                    page,
+                    totalResult,
+                    totalPage
+                }
+                return res.status(200).json({
+                    success: true,
+                    message: 'Get order successfully',
+                    orders,
+                    pagination
+                });
             }
         } catch (error) {
             return res.status(500).json({
@@ -667,7 +679,7 @@ const orderController = {
             const order = await Order.findById(orderId);
             if (order) {
                 if (order.status == 'ready' || order.status == 'preparing') {
-                    if(order.shipper){
+                    if (order.shipper) {
                         return res.status(403).json({
                             success: false,
                             message: 'Order has been received by someone else'
