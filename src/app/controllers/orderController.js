@@ -761,6 +761,7 @@ const orderController = {
                 const shipper = await Shipper.findById(order.shipper);
                 const orderInfor = {
                     address: order.address,
+                    location: order.userLocation,
                     paymentMethod: order.paymentMethod,
                     status: order.status,
                     paymentStatus: order.paymentStatus,

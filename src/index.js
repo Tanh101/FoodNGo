@@ -13,6 +13,14 @@ const app = express();
 const server = http.Server(app);
 const io = socketIO(server);
 
+io.on('connection', (socket) => {
+  console.log('A client connected.');
+
+  socket.on('disconnect', () => {
+    console.log('A client disconnected.');
+  });
+});
+
 
 const authRouter = require("./routes/auth");
 const userRouter = require("./routes/user");
@@ -77,13 +85,18 @@ app.use('/api/shipper', shipperRouter);
 app.use('/api/restaurant-dashboard', restaurantDashboardRouter);
 //START SERVER
 
-io.onconnection = (socket) => {
-  console.log('a user connected');
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
-};
+io.on('connection', (socket) => {
+  console.log('A client connected.');
 
+  socket.on('buttonClick', () => {
+    console.log('Client clicked the button.');
+    // Xử lý các thao tác liên quan tới sự kiện này trên phía máy chủ
+  });
+
+  socket.on('disconnect', () => {
+    console.log('A client disconnected.');
+  });
+});
 server.listen(process.env.PORT || 3306, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
 });
