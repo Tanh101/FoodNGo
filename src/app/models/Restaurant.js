@@ -76,12 +76,6 @@ const RestaurantSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-async function createIndexes() {
-    await Restaurant.createIndexes([
-        { name: 1 },
-        { status: 1 },
-    ]);
-}
 RestaurantSchema.index({ name: 1, status: 1 });
 RestaurantSchema.index({ location: "2dsphere" });
 module.exports = mongoose.model('restaurant', RestaurantSchema);
