@@ -18,4 +18,5 @@ router.get('/products/:id', auth.verifyToken, auth.checkRole('restaurant'), prod
 //@access public
 router.get('/best-selling-items', auth.verifyToken, auth.checkRole('restaurant'), restaurantDashboardController.getBestSellingItems);
 
+router.get('/revenue', auth.verifyToken, auth.checkRole('restaurant'), restaurantDashboardController.getRevenue);
 module.exports = router;

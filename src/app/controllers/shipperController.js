@@ -1,7 +1,8 @@
 const express = require('express');
 const Shipper = require('../models/Shipper');
 const Account = require('../models/Account');
-
+const Order = require('../models/Order');
+const mongoose = require('mongoose');
 const shipperController = {
     getShipperInfor: async (req, res) => {
         try {
@@ -50,6 +51,54 @@ const shipperController = {
                 message: 'Server error'
             });
 
+        }
+    },
+
+    getRevenue: async (req, res) => {
+        try {
+            const shipperId = req.user.userId;
+            const year = req.query.year || 2023;
+            const totalRevenue = await Order.aggregate([
+                {
+                    $match: {
+                        status: 'delivered',
+                        shipper: mongoose.Types.ObjectId(shipperId),
+                        createdAt: {
+                            $gte: new Date(year, 0, 1), // Bắt đầu từ ngày đầu tiên của năm
+                            $lte: new Date(year, 11, 31) // Kết thúc vào ngày cuối cùng của năm
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $month: '$createdAt' },
+                        totalRevenue: { $sum: '$deliveryFee' }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        month: '$_id',
+                        totalRevenue: 1
+                    }
+                },
+                {
+                    $sort: {
+                        month: 1
+                    }
+                }
+            ]);
+            return res.status(200).json({
+                sucess: true,
+                message: 'Get revenue successfully',
+                totalRevenue: totalRevenue
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                sucess: false,
+                error: error.message
+            });
         }
     }
 

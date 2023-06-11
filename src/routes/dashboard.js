@@ -55,6 +55,8 @@ router.put('/restaurant', auth.verifyToken, auth.checkRole('admin'), dashboardCo
 // @access private: only admin
 router.get('/restaurant/:id', auth.verifyToken, auth.checkRole('admin'), dashboardController.getRestaurantById);
 
+router.get('/statistic', auth.verifyToken, auth.checkRole('admin'), dashboardController.getStatistic);
+
 
 
 

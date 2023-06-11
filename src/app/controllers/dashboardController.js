@@ -4,6 +4,9 @@ const User = require('../models/User');
 const Account = require('../models/Account');
 const Category = require('../models/Category');
 const Shipper = require('../models/Shipper');
+const Order = require('../models/Order');
+
+
 
 const dashboardController = {
     getAllRestaurants: async (req, res) => {
@@ -618,12 +621,61 @@ const dashboardController = {
 
 
     ///role admin
-    findRestaurantByName: async (req, res) => {
+    getStatistic: async (req, res) => {
         try {
-        } catch (error) {
+            const totalRestaurant = await Restaurant.countDocuments();
+            const totalUser = await User.countDocuments();
+            const totalShipper = await Shipper.countDocuments();
+            const year = req.query.year || 2023; // Năm được người dùng nhập vào
 
+            const totalRevenueByMonth = await Order.aggregate([
+                {
+                    $match: {
+                        status: 'delivered',
+                        createdAt: {
+                            $gte: new Date(year, 0, 1),
+                            $lte: new Date(year, 11, 31)
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $month: '$createdAt' },
+                        totalRevenue: { $sum: '$total' }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        month: '$_id',
+                        totalRevenue: 1
+                    }
+                },
+                {
+                    $sort: {
+                        month: 1
+                    }
+                }
+            ]);
+            const data = {
+                totalRestaurant,
+                totalUser,
+                totalShipper,
+                totalRevenueByMonth: totalRevenueByMonth
+            }
+            return res.status(200).json({
+                success: true,
+                data
+            });
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
         }
     }
+
+
 }
 
 module.exports = dashboardController;

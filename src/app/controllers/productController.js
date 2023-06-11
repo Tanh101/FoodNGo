@@ -150,7 +150,7 @@ const productController = {
             }
             const { name, price, description, media, category } = req.body;
             const isExistName = await Product.findOne({ restaurant: restaurantId, name: name });
-            if (isExistName && isExistName.status == 'active') {
+            if (isExistName && isExistName.status == 'active'  && isExistName._id != productId) {
                 return res.status(400).json({
                     success: false,
                     message: 'Product name is already exist'

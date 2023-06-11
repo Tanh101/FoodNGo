@@ -48,7 +48,7 @@ const restaurantDashboardController = {
                     },
                 },
                 {
-                    $limit: limit, 
+                    $limit: limit,
                 },
             ]);
             const productInfor = await Promise.all(products.map(async (product) => {
@@ -72,7 +72,57 @@ const restaurantDashboardController = {
             });
         }
 
-    }
+    },
+
+    getRevenue: async (req, res) => {
+        try {
+            const restaurantId = req.user.userId;
+            const year = req.query.year || 2023; // Năm được người dùng nhập vào
+
+            const totalRevenueByMonth = await Order.aggregate([
+                {
+                    $match: {
+                        status: 'delivered',
+                        restaurant: mongoose.Types.ObjectId(restaurantId),
+                        createdAt: {
+                            $gte: new Date(year, 0, 1), // Bắt đầu từ ngày đầu tiên của năm
+                            $lte: new Date(year, 11, 31) // Kết thúc vào ngày cuối cùng của năm
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $month: '$createdAt' },
+                        totalRevenue: { $sum: { $subtract: ['$total', '$deliveryFee'] } }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        month: '$_id',
+                        totalRevenue: 1
+                    }
+                },
+                {
+                    $sort: {
+                        month: 1
+                    }
+                }
+            ]);
+
+            return res.status(200).json({
+                sucess: true,
+                message: 'Get revenue successfully',
+                totalRevenue: totalRevenueByMonth
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                sucess: false,
+                error: error.message
+            });
+        }
+    },
 }
 
 module.exports = restaurantDashboardController;
