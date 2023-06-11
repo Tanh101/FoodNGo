@@ -110,10 +110,40 @@ const restaurantDashboardController = {
                 }
             ]);
 
+            const totalProduct = await Order.aggregate([
+                {
+                    $match: {
+                        status: 'delivered',
+                        restaurant: mongoose.Types.ObjectId(restaurantId)
+                    }
+                },
+                {
+                    $unwind: '$orderItems'
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalProduct: { $sum: '$orderItems.quantity' },
+                        totalCustomer: { $addToSet: '$user' },
+                        totalOrder: { $addToSet: '$_id' }
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        totalProduct: 1,
+                        totalCustomer: { $size: '$totalCustomer' },
+                        totalOrder: { $size: '$totalOrder' }
+                    }
+                }
+            ]);
+
+
             return res.status(200).json({
                 sucess: true,
                 message: 'Get revenue successfully',
-                totalRevenue: totalRevenueByMonth
+                totalRevenue: totalRevenueByMonth,
+                totalProduct
             });
 
         } catch (error) {
