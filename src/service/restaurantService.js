@@ -54,7 +54,7 @@ const restaurantService = {
             const category = req.query.category;
             const latitude = req.query.latitude;
             const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 9;
+            const limit = parseInt(req.query.limit) || 9.0;
             const coordinates = [longitude, latitude].map(parseFloat);
 
             let allRestaurants = null;
@@ -108,8 +108,8 @@ const restaurantService = {
                     }
                 ]);
             }
-
-            const totalPage = Math.ceil(allRestaurants.length / limit);
+            const result = parseFloat(+allRestaurants.length.toString() + ".0" ) * 1.0 / parseFloat(limit.toString() + ".0");
+            const totalPage = parseFloat(result.toFixed(2)) +1 ;
             const totalResult = allRestaurants.length;
             const pagination = {
                 totalPage,
