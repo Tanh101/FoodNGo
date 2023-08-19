@@ -893,8 +893,35 @@ const orderController = {
                 message: error.message
             });
         }
-    }
+    },
 
+    getTotalPriceByUserID: async (req, res) => {
+        try {
+            const users = await Order.aggregate([
+                {
+                    $match: {
+                        total: { $gt: 1000000 }
+                    },
+                    $group: {
+                        _id: '$user',
+                        total: { $sum: '$total' }
+                    }
+
+                }
+            ]);
+            return res.status(200).json({
+                success: true,
+                message: 'Get total price by user successfully',
+                users: users
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
 
 }
 
